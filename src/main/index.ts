@@ -307,6 +307,9 @@ function createSpotlightWindow(): BrowserWindow {
     hasShadow: false,
     show: false,
     focusable: true,
+    // Ensure the window appears on whichever Space/desktop the user is
+    // currently on, rather than pulling them back to the primary Space.
+    visibleOnAllWorkspaces: true,
     icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/spotlight-preload.js'),
@@ -343,8 +346,12 @@ function createSpotlightWindow(): BrowserWindow {
 }
 
 function showAndFocusSpotlight(win: BrowserWindow, initialQuery?: string): void {
+  // On macOS, avoid `app.focus({ steal: true })` — it activates the whole
+  // application and causes the window manager to switch back to whichever
+  // Space the app was originally launched on (#179).  Instead, ensure the
+  // window is visible on all workspaces and focus it directly.
   if (process.platform === 'darwin') {
-    app.focus({ steal: true })
+    win.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
   }
 
   // Reposition fullscreen window to the active display
