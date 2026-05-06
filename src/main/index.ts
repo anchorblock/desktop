@@ -106,25 +106,24 @@ if (process.platform === 'linux') {
   // to work (the portal is enabled by default in Chromium 134+ / Electron 33+).
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
 
-  // Run the GPU service in-process instead of in a separate sandboxed
-  // process.  The out-of-process GPU crashes on Ubuntu 24.04+, certain
-  // Wayland compositors, and AppArmor-restricted environments because of
-  // shared-memory allocation failures in /dev/shm or /tmp (#119, #157).
+  // Force software GL rendering via SwiftShader.  The out-of-process GPU
+  // crashes on Ubuntu 24.04+, certain Wayland compositors, and AppArmor-
+  // restricted environments due to shared-memory allocation failures in
+  // /dev/shm or /tmp (#119, #157).
   //
-  // Previous attempts:
-  //   --disable-gpu-compositing  → GPU process still spawns & crashes.
-  //   --disable-gpu              → fixes crashes but kills the display
-  //                                compositor, so <webview> guest surfaces
-  //                                are never painted (gray rectangle #178).
+  // --disable-gpu kills the display compositor so <webview> guest surfaces
+  // are never painted (#178).  --in-process-gpu breaks <webview> guest
+  // compositing entirely (blank webviews on all Linux).
   //
-  // --in-process-gpu moves the GPU thread into the browser process, which
-  // sidesteps the cross-process shared-memory IPC entirely while keeping
-  // the display compositor alive so webview content renders normally.
-  app.commandLine.appendSwitch('in-process-gpu')
+  // SwiftShader keeps the GPU process out-of-process (required for
+  // <webview> compositing) while using software rendering to avoid
+  // driver-level crashes.
+  app.commandLine.appendSwitch('use-gl', 'angle')
+  app.commandLine.appendSwitch('use-angle', 'swiftshader')
 
-  // Disable the GPU sandbox — it is the sandbox setup that triggers the
-  // shared-memory failures.  With --in-process-gpu the GPU thread lives
-  // in the browser process which is already un-sandboxed (--no-sandbox).
+  // Disable the GPU sandbox — the sandbox setup triggers shared-memory
+  // allocation failures in /dev/shm.  The browser process is already
+  // un-sandboxed (--no-sandbox above).
   app.commandLine.appendSwitch('disable-gpu-sandbox')
 }
 
