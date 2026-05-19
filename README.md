@@ -1,41 +1,37 @@
-# Open WebUI Desktop
+# Omnizen Desktop
 
-[![Version](https://img.shields.io/github/v/release/open-webui/desktop?label=version&color=%2331c48d)](https://github.com/open-webui/desktop/releases)
-[![Downloads](https://img.shields.io/github/downloads/open-webui/desktop/total?color=%23764abc)](https://github.com/open-webui/desktop/releases)
-[![Discord](https://img.shields.io/discord/1170866489302188073?label=discord&color=%235865F2)](https://discord.gg/open-webui)
+[![Version](https://img.shields.io/github/v/release/anchorblock/desktop?label=version&color=%2331c48d)](https://github.com/anchorblock/desktop/releases)
+[![Downloads](https://img.shields.io/github/downloads/anchorblock/desktop/total?color=%23764abc)](https://github.com/anchorblock/desktop/releases)
+[![Discord](https://img.shields.io/discord/1170866489302188073?label=discord&color=%235865F2)](https://discord.gg/kumZTHSm)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
-![Open WebUI Desktop](./demo.png)
-
-Your AI, right on your desktop. [Open WebUI](https://github.com/open-webui/open-webui) as a native app. Run models locally or connect to any server. No Docker, no terminal, no setup. Download, launch, chat.
+Your AI, right on your desktop. Open WebUI as a native app, pre-wired to your [Omnizen](https://omnizen.ai) plan. No Docker, no terminal, no setup. Download, sign in, chat.
 
 > [!WARNING]
-> **Early Alpha.** Things move fast and stuff might break. [Report bugs](https://github.com/open-webui/desktop/issues) or [come hang out on Discord](https://discord.gg/open-webui).
+> **Early Alpha.** Things move fast and stuff might break. [Report bugs](https://github.com/anchorblock/desktop/issues) or [come hang out on Discord](https://discord.gg/kumZTHSm).
 
 ## Download
 
 | Platform | Installer |
 |----------|-----------|
-| macOS (Apple Silicon) | [**Download .dmg**](https://github.com/open-webui/desktop/releases/latest/download/open-webui-arm64.dmg) |
-| macOS (Intel) | [**Download .dmg**](https://github.com/open-webui/desktop/releases/latest/download/open-webui-x64.dmg) |
-| Windows x64 | [**Download .exe**](https://github.com/open-webui/desktop/releases/latest/download/open-webui-x64-setup.exe) |
-| Windows ARM64 | [**Download .exe**](https://github.com/open-webui/desktop/releases/latest/download/open-webui-arm64-setup.exe) |
-| Linux x64 (AppImage) | [**Download .AppImage**](https://github.com/open-webui/desktop/releases/latest/download/open-webui_x64.AppImage) |
-| Linux x64 (Debian/Ubuntu) | [**Download .deb**](https://github.com/open-webui/desktop/releases/latest/download/open-webui_amd64.deb) |
-| Linux x64 (Snap) | [**Download .snap**](https://github.com/open-webui/desktop/releases/latest/download/open-webui_amd64.snap) |
-| Linux x64 (Flatpak) | [**Download .flatpak**](https://github.com/open-webui/desktop/releases/latest/download/open-webui.flatpak) |
-| Linux ARM64 (AppImage) | [**Download .AppImage**](https://github.com/open-webui/desktop/releases/latest/download/open-webui_arm64.AppImage) |
-| Linux ARM64 (Debian/Ubuntu) | [**Download .deb**](https://github.com/open-webui/desktop/releases/latest/download/open-webui_arm64.deb) |
+| macOS (Apple Silicon) | [**Download .dmg**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop-arm64.dmg) |
+| macOS (Intel) | [**Download .dmg**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop-x64.dmg) |
+| Windows x64 | [**Download .exe**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop-x64-setup.exe) |
+| Windows ARM64 | [**Download .exe**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop-arm64-setup.exe) |
+| Linux x64 (AppImage) | [**Download .AppImage**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop_x64.AppImage) |
+| Linux x64 (Debian/Ubuntu) | [**Download .deb**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop_amd64.deb) |
+| Linux ARM64 (AppImage) | [**Download .AppImage**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop_arm64.AppImage) |
+| Linux ARM64 (Debian/Ubuntu) | [**Download .deb**](https://github.com/anchorblock/desktop/releases/latest/download/omnizen-desktop_arm64.deb) |
 
-Internet required on first launch. After that, everything works offline. [All releases →](https://github.com/open-webui/desktop/releases)
+Internet required on first launch. [All releases →](https://github.com/anchorblock/desktop/releases)
 
 ## How It Works
 
-🖥️ **Run locally.** The app runs Open WebUI on your machine. Chat history and uploads stay on your computer.
+🖥️ **Runs locally.** The app spawns an Open WebUI server on your machine. Chat history and uploads stay on your computer.
 
-☁️ **Connect remotely.** Point the app at any Open WebUI server. Switch between multiple connections from the sidebar.
+🔑 **Routed to Omnizen.** Sign in once via your browser; the local server uses your Omnizen plan to call every frontier model behind one bill.
 
-Use both at the same time.
+☁️ **Add other servers if you want.** The multi-connection sidebar still works — point at any Open WebUI server alongside Omnizen.
 
 ## Highlights
 
@@ -58,10 +54,12 @@ No telemetry. No tracking. No phone-home. Your conversations stay on your machin
 
 ## Community
 
-- 💬 [Discord](https://discord.gg/open-webui) - Come hang out
-- 🐛 [Issues](https://github.com/open-webui/desktop/issues) - Report bugs or request features
-- 🌐 [Open WebUI](https://github.com/open-webui/open-webui) - The main project
-- 📖 [Docs](https://docs.openwebui.com) - Full documentation
+- 💬 [Discord](https://discord.gg/kumZTHSm) - Come hang out
+- 🐛 [Issues](https://github.com/anchorblock/desktop/issues) - Report bugs or request features
+- 🌐 [Omnizen](https://omnizen.ai) - The hosted plan that powers the routing
+- 📖 [Docs](https://omnizen.ai/docs) - Setup + integration guides
+
+This project is a fork of [open-webui/desktop](https://github.com/open-webui/desktop). Upstream's docs at [docs.openwebui.com](https://docs.openwebui.com) cover the embedded Open WebUI itself.
 
 ## Contributing
 

@@ -1,4 +1,4 @@
 provider: github
-owner: open-webui
+owner: anchorblock
 repo: desktop
-updaterCacheDirName: desktop-updater
+updaterCacheDirName: omnizen-desktop-updater

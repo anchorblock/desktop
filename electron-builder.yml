@@ -1,5 +1,5 @@
-appId: com.openwebui.desktop
-productName: Open WebUI
+appId: com.omnizen.desktop
+productName: Omnizen
 directories:
   buildResources: build
 files:
@@ -17,7 +17,7 @@ asarUnpack:
   - resources/**
   - node_modules/node-pty/**
 win:
-  executableName: open-webui
+  executableName: omnizen
 nsis:
   artifactName: ${name}-${arch}-setup.${ext}
   shortcutName: ${productName}
@@ -39,7 +39,6 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
 dmg:
-  background: build/dmg-background.png
   artifactName: ${name}-${arch}.${ext}
   title: ${productName}
   contents:
@@ -56,7 +55,7 @@ linux:
     - snap
     - deb
     - flatpak
-  maintainer: openwebui.com
+  maintainer: omnizen.ai
   category: Utility
 deb:
   artifactName: ${name}_${arch}.${ext}
@@ -84,5 +83,5 @@ flatpak:
 npmRebuild: true
 publish:
   provider: github
-  owner: open-webui
+  owner: anchorblock
   repo: desktop
