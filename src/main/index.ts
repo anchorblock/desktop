@@ -167,6 +167,19 @@ function isGlobalShortcutSupported(): boolean {
 }
 
 /**
+ * On Wayland sessions, individual shortcut grabs frequently fail (the
+ * compositor or other apps may already own the chord; portal support
+ * varies across desktop environments). Failures still get logged, but
+ * we suppress the user-facing toast — getting four "could not register"
+ * notifications on every launch is a worse experience than missing
+ * shortcuts.
+ */
+function shortcutNotificationsSilent(): boolean {
+  if (process.platform !== 'linux') return false
+  return (process.env['XDG_SESSION_TYPE'] ?? '').toLowerCase() === 'wayland'
+}
+
+/**
  * Try to register a single global shortcut.  Returns true on success.
  * On failure a user-facing notification is shown (unless `silent` is set).
  */
@@ -176,6 +189,7 @@ function tryRegisterShortcut(
   callback: () => void,
   silent = false
 ): boolean {
+  const effectivelySilent = silent || shortcutNotificationsSilent()
   try {
     const ok = globalShortcut.register(accel, callback)
     if (ok) {
@@ -183,7 +197,7 @@ function tryRegisterShortcut(
       return true
     }
     log.warn(`${label} shortcut "${accel}" could not be registered (returned false)`)
-    if (!silent) {
+    if (!effectivelySilent) {
       new Notification({
         title: label,
         body: `Could not register shortcut "${accel}". It may be in use by another application.`
@@ -192,7 +206,7 @@ function tryRegisterShortcut(
     return false
   } catch (error) {
     log.warn(`${label} shortcut "${accel}" registration threw:`, error)
-    if (!silent) {
+    if (!effectivelySilent) {
       new Notification({
         title: label,
         body: `Failed to register shortcut "${accel}". It may conflict with another application.`
