@@ -1,0 +1,17 @@
+Omnizen Desktop
+===============
+
+This project is a fork of Open WebUI Desktop:
+  https://github.com/open-webui/desktop
+
+Upstream copyright © Timothy Jaeryang Baek and the Open WebUI
+contributors, licensed under the GNU Affero General Public License v3.0
+(see LICENSE).
+
+Modifications © 2026 Anchorblock Venture Capital, also licensed under
+the GNU Affero General Public License v3.0.
+
+The bundled Open WebUI Python package (installed at runtime into the
+user's data directory) is itself © Open WebUI contributors and ships
+under the terms of its own license; see https://docs.openwebui.com for
+upstream documentation.

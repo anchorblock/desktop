@@ -5,14 +5,13 @@
   import Switch from '../../common/Switch.svelte'
 
   interface Props {
-    onContinue: (options: { installOpenTerminal: boolean; installLlamaCpp: boolean; installDir: string }) => void
+    onContinue: (options: { installOpenTerminal: boolean; installDir: string }) => void
     onCancel: () => void
   }
 
   let { onContinue, onCancel }: Props = $props()
 
   let installOpenTerminal = $state(true)
-  let installLlamaCpp = $state(true)
   let installDir = $state('')
   let defaultInstallDir = $state('')
   let advancedOpen = $state(false)
@@ -79,19 +78,6 @@
         />
       </div>
 
-      <div class="py-3.5 flex items-center justify-between gap-4">
-        <div>
-          <div class="text-[13px] font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            {$i18n.t('main.getStarted.llamaCpp')}
-            <span class="text-[9px] opacity-30 uppercase tracking-wide">{$i18n.t('common.experimental')}</span>
-          </div>
-          <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{$i18n.t('main.getStarted.llamaCppDesc')}</div>
-        </div>
-        <Switch
-          checked={installLlamaCpp}
-          onchange={(v) => { installLlamaCpp = v }}
-        />
-      </div>
     </div>
 
     <!-- Advanced (collapsed) -->
@@ -135,7 +121,7 @@
     <div class="px-5 pb-5 pt-1 flex flex-col gap-2">
       <button
         class="w-full rounded-xl bg-gray-900 dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-gray-900 transition-all duration-200 hover:bg-gray-800 dark:hover:bg-gray-100 active:scale-[0.98] border-none cursor-pointer"
-        onclick={() => onContinue({ installOpenTerminal, installLlamaCpp, installDir })}
+        onclick={() => onContinue({ installOpenTerminal, installDir })}
       >
         {$i18n.t('main.getStarted.continue')}
       </button>

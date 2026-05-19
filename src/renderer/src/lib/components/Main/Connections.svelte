@@ -44,7 +44,7 @@
   let showAddConnectionModal = $state(false)
 
   // Active log panel
-  let activeLog = $state<'server' | 'open-terminal' | 'llama-server' | null>(null)
+  let activeLog = $state<'server' | 'open-terminal' | null>(null)
 
   const serverStatus = $derived($serverInfo?.status)
   const serverReachable = $derived($serverInfo?.reachable)
@@ -59,14 +59,9 @@
   // Open Terminal state
   let openTerminalStatus = $state<string | null>(null)
   let openTerminalInfo = $state<{ url?: string; apiKey?: string } | null>(null)
-
-  // Llama Server state
-  let llamaCppStatus = $state<string | null>(null)
-  let llamaCppInfo = $state<{ url?: string; pid?: number } | null>(null)
-  let llamaCppSetupStatus = $state('')
   let openTerminalSetupStatus = $state('')
 
-  const startInstall = async (options?: { installOpenTerminal?: boolean; installLlamaCpp?: boolean; installDir?: string }) => {
+  const startInstall = async (options?: { installOpenTerminal?: boolean; installDir?: string }) => {
     installPhase = 'working'
     installError = ''
     installStatus = ''
@@ -102,9 +97,6 @@
       // concurrent uv installs fighting over the lockfile
       if (options?.installOpenTerminal) {
         toggleOpenTerminal()
-      }
-      if (options?.installLlamaCpp) {
-        toggleLlamaCpp()
       }
 
       installStatus = $i18n.t('main.install.startingServer')
@@ -296,8 +288,6 @@
         window.electronAPI.connectPty(callback)
       } else if (log === 'open-terminal') {
         window.electronAPI.connectOpenTerminalPty(callback)
-      } else if (log === 'llama-server') {
-        window.electronAPI.connectLlamaCppPty(callback)
       }
     }
   }
@@ -308,8 +298,6 @@
         window.electronAPI.disconnectPty()
       } else if (log === 'open-terminal') {
         window.electronAPI?.disconnectOpenTerminalPty?.()
-      } else if (log === 'llama-server') {
-        window.electronAPI?.disconnectLlamaCppPty?.()
       }
     }
   }
@@ -430,9 +418,6 @@
       if (data.type === 'status:open-terminal') { openTerminalStatus = data.data; return }
       if (data.type === 'status:open-terminal-setup') { openTerminalSetupStatus = data.data ?? ''; return }
       if (data.type === 'open-terminal:ready') { openTerminalInfo = data.data; openTerminalStatus = 'started'; openTerminalSetupStatus = ''; return }
-      if (data.type === 'status:llamacpp') { llamaCppStatus = data.data; return }
-      if (data.type === 'status:llamacpp-setup') { llamaCppSetupStatus = data.data ?? ''; return }
-      if (data.type === 'llamacpp:ready') { llamaCppInfo = data.data; llamaCppStatus = 'started'; llamaCppSetupStatus = ''; return }
       if (data.type === 'status:install') { installStatus = data.data ?? ''; return }
       if (data.type === 'packages:changed') {
         localInstalled = !!data.data?.['open-webui']
@@ -473,15 +458,6 @@
       localInstalled = v !== null
     })
 
-    // Check llama-server state on mount
-    window.electronAPI.getLlamaCppInfo().then((info: any) => {
-      if (info?.status) {
-        llamaCppStatus = info.status
-      }
-      if (info?.binaryPath || info?.status) {
-        llamaCppInfo = info
-      }
-    })
   })
 
   const toggleOpenTerminal = async () => {
@@ -506,24 +482,6 @@
     }
   }
 
-  const toggleLlamaCpp = async () => {
-    if (llamaCppStatus === 'starting' || llamaCppStatus === 'setting-up') return
-    if (llamaCppStatus === 'started') {
-      llamaCppStatus = 'stopping'
-      await window.electronAPI.stopLlamaCpp()
-      llamaCppStatus = null
-      llamaCppInfo = null
-    } else {
-      llamaCppStatus = 'starting'
-      const result = await window.electronAPI.startLlamaCpp()
-      if (result) {
-        llamaCppInfo = result
-        llamaCppStatus = 'started'
-      } else {
-        llamaCppStatus = 'failed'
-      }
-    }
-  }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -581,20 +539,16 @@
       {activeLog}
       serviceReady={activeLog === 'server'
         ? serverStatus === 'started'
-        : activeLog === 'open-terminal'
-          ? openTerminalStatus === 'started'
-          : llamaCppStatus === 'started'}
+        : openTerminalStatus === 'started'}
       statusText={activeLog === 'server'
         ? (serverStatus === 'starting' ? 'Starting Open WebUI…' : serverStatus === 'running' && !serverReachable ? 'Waiting for server…' : installStatus || '')
-        : activeLog === 'open-terminal'
-          ? (openTerminalStatus === 'stopping' ? 'Stopping Open Terminal…' : openTerminalSetupStatus || (openTerminalStatus === 'starting' ? 'Starting Open Terminal…' : ''))
-          : (llamaCppStatus === 'stopping' ? 'Stopping llama-server…' : llamaCppSetupStatus || (llamaCppStatus === 'starting' ? 'Starting llama-server…' : llamaCppStatus === 'setting-up' ? 'Setting up llama.cpp…' : ''))}
+        : (openTerminalStatus === 'stopping' ? 'Stopping Open Terminal…' : openTerminalSetupStatus || (openTerminalStatus === 'starting' ? 'Starting Open Terminal…' : ''))}
       connectPty={getConnectPty(activeLog)}
       disconnectPty={getDisconnectPty(activeLog)}
       readonly={activeLog !== 'server'}
       onWrite={getOnWrite(activeLog)}
       onResize={getOnResize(activeLog)}
-      onStop={activeLog === 'open-terminal' ? toggleOpenTerminal : activeLog === 'llama-server' ? toggleLlamaCpp : undefined}
+      onStop={activeLog === 'open-terminal' ? toggleOpenTerminal : undefined}
       onClose={() => { activeLog = null; showingLogs = false }}
     />
   {/if}
@@ -603,10 +557,8 @@
     {serverStatus}
     {serverReachable}
     {openTerminalStatus}
-    {llamaCppStatus}
     openWebuiInstalled={localInstalled}
     {openTerminalInstalled}
-    llamaCppInstalled={!!llamaCppInfo?.binaryPath}
     {activeLog}
     onSelectLog={selectLog}
     onStartServer={async () => {
@@ -622,6 +574,5 @@
       serverInfo.set(info)
     }}
     onToggleOpenTerminal={toggleOpenTerminal}
-    onToggleLlamaCpp={toggleLlamaCpp}
   />
 </div>

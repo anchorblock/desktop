@@ -6,6 +6,7 @@
   import LocalInstall from '../../Setup/LocalInstall.svelte'
   import GetStartedModal from './GetStartedModal.svelte'
   import AddConnectionModal from './AddConnectionModal.svelte'
+  import OmnizenSignIn from './OmnizenSignIn.svelte'
   import landingVideo from '../../../../assets/landing.mp4'
 
   interface Props {
@@ -25,7 +26,7 @@
     connecting: boolean
     error: string
     autoInstall: boolean
-    onStartInstall: (options?: { installOpenTerminal?: boolean; installLlamaCpp?: boolean; installDir?: string }) => void
+    onStartInstall: (options?: { installOpenTerminal?: boolean; installDir?: string }) => void
     onAddConnection: () => void
     onSetView: (v: string) => void
     showAddConnectionModal: boolean
@@ -454,6 +455,12 @@
                       {installStatus}
                     </div>
                   {/if}
+                {/if}
+
+                {#if installPhase !== 'working' && localInstalled}
+                  <div class="mt-6">
+                    <OmnizenSignIn />
+                  </div>
                 {/if}
 
                 {#if installPhase !== 'working'}

@@ -1,11 +1,11 @@
 {
-  "name": "open-webui",
+  "name": "omnizen-desktop",
   "version": "0.0.20",
   "license": "AGPL-3.0",
-  "description": "Open WebUI Desktop",
+  "description": "Omnizen Desktop — open-source chat for every frontier model, routed through your Omnizen plan",
   "main": "./out/main/index.js",
-  "author": "Open WebUI Inc. (Timothy Jaeryang Baek)",
-  "homepage": "https://openwebui.com",
+  "author": "Anchorblock Venture Capital",
+  "homepage": "https://omnizen.ai",
   "scripts": {
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "lint": "eslint --cache .",
@@ -19,7 +19,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "icons": "node scripts/render-icons.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -46,6 +47,7 @@
     "@types/node": "^22.19.1",
     "electron": "^39.2.6",
     "electron-builder": "^26.0.12",
+    "electron-icon-builder": "^2.0.1",
     "electron-vite": "^5.0.0",
     "eslint": "^9.39.1",
     "eslint-plugin-svelte": "^3.13.1",

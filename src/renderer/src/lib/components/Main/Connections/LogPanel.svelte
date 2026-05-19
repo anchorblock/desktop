@@ -5,7 +5,7 @@
   import LogViewer from '../../common/LogViewer.svelte'
 
   interface Props {
-    activeLog: 'server' | 'open-terminal' | 'llama-server'
+    activeLog: 'server' | 'open-terminal'
     serviceReady: boolean
     statusText?: string
     connectPty: (callback: (data: string) => void) => void
@@ -43,8 +43,7 @@
 
   const logLabels: Record<string, () => string> = {
     'server': () => $i18n.t('statusBar.server'),
-    'open-terminal': () => $i18n.t('sidebar.openTerminal'),
-    'llama-server': () => $i18n.t('sidebar.llamaCpp')
+    'open-terminal': () => $i18n.t('sidebar.openTerminal')
   }
 
   const onDragStart = (e: MouseEvent) => {
@@ -106,7 +105,7 @@
     </div>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="flex items-center gap-0.5" onclick={(e) => e.stopPropagation()}>
-      <!-- Stop button (Open Terminal / llama.cpp only) -->
+      <!-- Stop button (Open Terminal only) -->
       {#if onStop && serviceReady}
         <button
           class="p-1 rounded-md hover:bg-white/[0.08] transition bg-transparent border-none cursor-pointer {stopping ? 'opacity-30 pointer-events-none' : 'opacity-40 hover:opacity-80'} text-white"

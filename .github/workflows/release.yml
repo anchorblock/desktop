@@ -173,8 +173,8 @@ jobs:
                   azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
                   azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
                   endpoint: https://eus.codesigning.azure.net/
-                  trusted-signing-account-name: open-webui
-                  certificate-profile-name: open-webui
+                  trusted-signing-account-name: omnizen
+                  certificate-profile-name: omnizen
                   files-folder: dist
                   files-folder-filter: exe
 

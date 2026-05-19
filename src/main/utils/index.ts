@@ -14,6 +14,8 @@ import { execFileSync, exec, spawn, execSync, execFile } from 'child_process'
 import log from 'electron-log'
 log.transports.file.resolvePathFn = () => getLogFilePath('main')
 
+import { readCreds } from './omnizen'
+
 const serverLogger = log.create({ logId: 'server' })
 serverLogger.transports.file.resolvePath = () => getLogFilePath('server')
 
@@ -52,7 +54,7 @@ export const getUserDataPath = (): string => {
 }
 
 /**
- * Root directory for heavyweight data (Python, models, llama.cpp).
+ * Root directory for heavyweight data (Python, models).
  * Reads `installDir` from config.json synchronously so it's available
  * before any async init. Falls back to `getUserDataPath()`.
  */
@@ -563,6 +565,18 @@ export const startServer = async (
   await stopAllServers()
   const config = await getConfig()
   const configEnvVars = config.envVars ?? {}
+  // When the user has signed in to Omnizen, route the bundled
+  // OpenWebUI's chat completions through api.omnizen.ai. With no
+  // creds yet we just spawn the upstream defaults and the renderer
+  // surfaces the sign-in CTA.
+  const creds = await readCreds()
+  const omnizenEnv = creds
+    ? {
+        OPENAI_API_BASE_URLS: creds.openai_base_url,
+        OPENAI_API_KEYS: creds.api_key,
+        BYPASS_MODEL_ACCESS_CONTROL: 'True'
+      }
+    : {}
   const host = expose ? '0.0.0.0' : '127.0.0.1'
   if (!isPythonInstalled()) throw new Error('Python is not installed')
   if (!isPackageInstalled('open-webui')) throw new Error('open-webui package is not installed')
@@ -601,6 +615,7 @@ export const startServer = async (
       rows: 50,
       env: pythonEnv({
         ...(configEnvVars ?? {}),
+        ...omnizenEnv,
         DATA_DIR: dataDir,
         WEBUI_SECRET_KEY: secretKey,
         PYTHONUNBUFFERED: '1'
@@ -828,13 +843,6 @@ export interface AppConfig {
     cwd: string
     apiKey: string
   }
-  llamaCpp: {
-    enabled: boolean
-    port: number
-    version: string
-    variant: string
-    extraArgs: string[]
-  }
   envVars: Record<string, string>
   showSidebar: boolean
   spotlightPosition: { x: number; y: number } | null
@@ -865,12 +873,6 @@ const DEFAULT_CONFIG: AppConfig = {
     enabled: false,
     cwd: '',
     apiKey: ''
-  },
-  llamaCpp: {
-    enabled: false,
-    version: 'latest',
-    variant: 'cpu',
-    extraArgs: []
   },
   envVars: {},
   showSidebar: false,
@@ -957,18 +959,7 @@ export const resetApp = async (): Promise<void> => {
     }
   }
 
-  // Remove llama.cpp binaries
-  const llamaCppPath = path.join(getInstallDir(), 'llama.cpp')
-  if (fs.existsSync(llamaCppPath)) {
-    try {
-      fs.rmSync(llamaCppPath, { recursive: true, force: true })
-      log.info('Removed llama.cpp directory')
-    } catch (error) {
-      log.error('Failed to remove llama.cpp directory:', error)
-    }
-  }
-
-  // Remove downloaded models (huggingface + any user-added models)
+  // Remove downloaded models directory if it was created by a prior install
   const modelsPath = path.join(getInstallDir(), 'models')
   if (fs.existsSync(modelsPath)) {
     try {
