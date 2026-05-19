@@ -1,5 +1,5 @@
 {
-  "app.name": "Open WebUI",
+  "app.name": "Omnizen",
   "app.desktop": "Open WebUI Escritorio",
   "common.loading": "Cargando…",
   "common.cancel": "Cancelar",
@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "Fallido",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "Seleccione una conexión para comenzar",
-  "main.heroDescription": "Conéctese a un servidor Open WebUI o configure uno en esta máquina.",
+  "main.heroDescription": "Inicie sesión en Omnizen — o conéctese a cualquier servidor Open WebUI.",
   "main.getStarted": "Comenzar",
   "main.getStarted.title": "Configura tu entorno",
   "main.getStarted.description": "Elige servicios opcionales para instalar junto con Open WebUI.",

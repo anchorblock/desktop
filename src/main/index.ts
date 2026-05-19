@@ -635,7 +635,12 @@ function createMainWindow(show = true): void {
   }
 
   if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools()
+    // Dock DevTools to the bottom of the main window. The default
+    // `detach` mode opens DevTools as a separate top-level window
+    // which on Linux can land on top of the app window and look like
+    // the app failed to render. `bottom` keeps everything in one
+    // window.
+    mainWindow.webContents.openDevTools({ mode: 'bottom' })
   }
 
   if (show) {
