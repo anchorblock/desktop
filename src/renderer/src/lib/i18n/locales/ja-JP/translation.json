@@ -1,5 +1,5 @@
 {
-  "app.name": "Open WebUI",
+  "app.name": "Omnizen",
   "app.desktop": "Open WebUI デスクトップ",
   "common.loading": "読み込み中…",
   "common.cancel": "キャンセル",
@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "失敗",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "接続を選択して開始してください",
-  "main.heroDescription": "Open WebUI サーバーに接続するか、このマシンにセットアップしてください。",
+  "main.heroDescription": "Omnizen にサインインするか、任意の Open WebUI サーバーに接続してください。",
   "main.getStarted": "始める",
   "main.getStarted.title": "環境をセットアップ",
   "main.getStarted.description": "Open WebUI と一緒にインストールするオプションのサービスを選択してください。",

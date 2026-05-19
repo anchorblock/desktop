@@ -1,5 +1,5 @@
 {
-  "app.name": "Open WebUI",
+  "app.name": "Omnizen",
   "app.desktop": "Open WebUI 데스크톱",
   "common.loading": "로딩 중…",
   "common.cancel": "취소",
@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "실패",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "시작하려면 연결을 선택하세요",
-  "main.heroDescription": "Open WebUI 서버에 연결하거나 이 컴퓨터에 설치하세요.",
+  "main.heroDescription": "Omnizen에 로그인하거나, 다른 Open WebUI 서버에 연결하세요.",
   "main.getStarted": "시작하기",
   "main.getStarted.title": "환경 설정",
   "main.getStarted.description": "Open WebUI와 함께 설치할 선택적 서비스를 선택하세요.",

@@ -1,5 +1,5 @@
 {
-  "app.name": "Open WebUI",
+  "app.name": "Omnizen",
   "app.desktop": "Open WebUI 桌面版",
   "common.loading": "載入中…",
   "common.cancel": "取消",
@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "失敗",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "選擇一個連線以開始使用",
-  "main.heroDescription": "連線到 Open WebUI 伺服器，或在本機上設定一個。",
+  "main.heroDescription": "登入 Omnizen，或連線到任意 Open WebUI 伺服器。",
   "main.getStarted": "開始使用",
   "main.getStarted.title": "設定您的環境",
   "main.getStarted.description": "選擇要與 Open WebUI 一起安裝的選用服務。",
