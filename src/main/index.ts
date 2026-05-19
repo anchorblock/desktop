@@ -59,29 +59,6 @@ import {
   validateOpenTerminalProcess
 } from './utils/open-terminal'
 
-import {
-  setupLlamaCpp,
-  startLlamaCpp,
-  stopLlamaCpp,
-  getLlamaCppInfo,
-  getLlamaCppLog,
-  getLlamaCppPty,
-  validateLlamaCppProcess,
-  checkLlamaCppUpdate,
-  updateLlamaCpp,
-  uninstallLlamaCpp
-} from './utils/llamacpp'
-
-import {
-  listModels,
-  downloadModel,
-  deleteModel,
-  cancelDownload,
-  getModelsDir,
-  searchModels,
-  getRepoFiles
-} from './utils/huggingface'
-
 import { initUpdater, checkForUpdates, downloadUpdate, installUpdate } from './updater'
 
 import log from 'electron-log'
@@ -1077,42 +1054,6 @@ const connectOpenTerminalPtyPort = (): void => {
   mainWindow.webContents.postMessage('open-terminal:pty:port', null, [port2])
 }
 
-/**
- * MessagePort channel for the llamacpp PTY — log viewer.
- */
-let activeLlamaCppDisposable: { dispose: () => void } | null = null
-
-const connectLlamaCppPtyPort = (): void => {
-  if (!mainWindow) return
-
-  const { port1, port2 } = new MessageChannelMain()
-
-  const lsPty = getLlamaCppPty()
-  if (!lsPty) {
-    port1.postMessage({ type: 'output', data: '[llamacpp is not running]\r\n' })
-    mainWindow.webContents.postMessage('llamacpp:pty:port', null, [port2])
-    return
-  }
-
-  // Clean up previous
-  activeLlamaCppDisposable?.dispose()
-
-  // Replay log buffer
-  const buffer = getLlamaCppLog()
-  for (const chunk of buffer) {
-    port1.postMessage({ type: 'output', data: chunk })
-  }
-
-  // Live data
-  const disposable = lsPty.onData((data: string) => {
-    port1.postMessage({ type: 'output', data })
-  })
-  activeLlamaCppDisposable = disposable
-
-  port1.start()
-  mainWindow.webContents.postMessage('llamacpp:pty:port', null, [port2])
-}
-
 const stopServerHandler = async (): Promise<boolean> => {
   try {
     await stopAllServers()
@@ -1140,13 +1081,6 @@ const resetAppHandler = async () => {
       sendToRenderer('status:open-terminal', null)
     } catch (e) {
       log.warn('Failed to stop Open Terminal during reset:', e)
-    }
-    // Stop and uninstall llama.cpp if running
-    try {
-      await uninstallLlamaCpp()
-      sendToRenderer('status:llamacpp', null)
-    } catch (e) {
-      log.warn('Failed to uninstall llama.cpp during reset:', e)
     }
     // Remove GPU crash marker so sandbox is re-tested on next launch
     try {
@@ -1917,137 +1851,6 @@ if (!gotTheLock) {
     ipcMain.handle('open-terminal:status', () => isPackageInstalled('open-terminal'))
     ipcMain.handle('open-terminal:pty:connect', () => connectOpenTerminalPtyPort())
 
-    // llama.cpp
-    ipcMain.handle('llamacpp:setup', async () => {
-      try {
-        sendToRenderer('status:llamacpp', 'setting-up')
-        const binary = await setupLlamaCpp((status) => {
-          sendToRenderer('status:llamacpp-setup', status)
-        })
-        sendToRenderer('status:llamacpp', 'ready')
-        return binary
-      } catch (error) {
-        log.error('Failed to setup llamacpp:', error)
-        sendToRenderer('status:llamacpp', 'failed')
-        sendToRenderer('error', { message: `llamacpp setup failed: ${error?.message}` })
-        return null
-      }
-    })
-
-    ipcMain.handle('llamacpp:start', async () => {
-      try {
-        sendToRenderer('status:llamacpp', 'starting')
-        const result = await startLlamaCpp((status) => {
-          sendToRenderer('status:llamacpp-setup', status)
-        })
-        sendToRenderer('status:llamacpp', 'started')
-        sendToRenderer('llamacpp:ready', result)
-        // Notify webview to register llama-server as OpenAI endpoint
-        if (result.url) {
-          sendToRenderer('connections:openai', {
-            action: 'add',
-            url: `${result.url}/v1`,
-            config: { provider: 'llama.cpp', connection_type: 'local' }
-          })
-          // Refresh model list after backend registers the endpoint
-          setTimeout(() => sendToRenderer('models:refresh'), 1000)
-        }
-
-        return result
-      } catch (error) {
-        log.error('Failed to start llamacpp:', error)
-        sendToRenderer('status:llamacpp', 'failed')
-        sendToRenderer('error', { message: `llamacpp failed: ${error?.message}` })
-        return null
-      }
-    })
-
-    ipcMain.handle('llamacpp:stop', async () => {
-      try {
-        const info = getLlamaCppInfo()
-        await stopLlamaCpp()
-        sendToRenderer('status:llamacpp', 'stopped')
-        // Notify webview to unregister llama-server
-        if (info.url) {
-          sendToRenderer('connections:openai', {
-            action: 'remove',
-            url: `${info.url}/v1`
-          })
-          // Refresh model list after removing endpoint
-          setTimeout(() => sendToRenderer('models:refresh'), 500)
-        }
-
-        return true
-      } catch (error) {
-        log.error('Failed to stop llamacpp:', error)
-        return false
-      }
-    })
-
-    ipcMain.handle('llamacpp:info', () => getLlamaCppInfo())
-    ipcMain.handle('llamacpp:logs', () => getLlamaCppLog())
-    ipcMain.handle('llamacpp:pty:connect', () => connectLlamaCppPtyPort())
-
-    ipcMain.handle('llamacpp:uninstall', async () => {
-      try {
-        const info = getLlamaCppInfo()
-        await uninstallLlamaCpp()
-        sendToRenderer('status:llamacpp', null)
-        // Unregister OpenAI endpoint if it was running
-        if (info.url) {
-          sendToRenderer('connections:openai', {
-            action: 'remove',
-            url: `${info.url}/v1`
-          })
-          setTimeout(() => sendToRenderer('models:refresh'), 500)
-        }
-        await setConfig({ llamaCpp: { ...CONFIG?.llamaCpp, enabled: false } })
-        CONFIG = await getConfig()
-        return true
-      } catch (error) {
-        log.error('Failed to uninstall llamacpp:', error)
-        return false
-      }
-    })
-
-    // Hugging Face models
-    ipcMain.handle('huggingface:models:list', () => listModels())
-    ipcMain.handle('huggingface:models:dir', () => getModelsDir())
-    ipcMain.handle('huggingface:models:delete', (_event, repo: string, filename: string) => {
-      return deleteModel(repo, filename)
-    })
-    ipcMain.handle('huggingface:models:cancel', (_event, repo?: string, filename?: string) => {
-      cancelDownload(repo, filename)
-      return true
-    })
-    ipcMain.handle('huggingface:search', async (_event, query: string, token?: string) => {
-      return searchModels(query, token)
-    })
-    ipcMain.handle('huggingface:repo:files', async (_event, repo: string, token?: string) => {
-      return getRepoFiles(repo, token)
-    })
-    ipcMain.handle('huggingface:models:download', async (_event, repo: string, filename: string, token?: string, expectedSize?: number) => {
-      try {
-        sendToRenderer('status:huggingface-download', { repo, filename, status: 'downloading', percent: 0 })
-        const filepath = await downloadModel(repo, filename, (progress) => {
-          sendToRenderer('status:huggingface-download', {
-            repo, filename,
-            status: 'downloading',
-            percent: progress.percent,
-            downloadedBytes: progress.downloadedBytes,
-            totalBytes: progress.totalBytes
-          })
-        }, token, expectedSize)
-        sendToRenderer('status:huggingface-download', { repo, filename, status: 'done', filepath })
-        return filepath
-      } catch (error) {
-        log.error('Failed to download model:', error)
-        sendToRenderer('status:huggingface-download', { repo, filename, status: 'failed', error: error?.message })
-        sendToRenderer('error', { message: `Model download failed: ${error?.message}` })
-        return null
-      }
-    })
-
     ipcMain.handle('package:version', (_event, packageName: string) => getPackageVersion(packageName))
     ipcMain.handle('package:uninstall', async (_event, packageName: string) => {
       const result = uninstallPackage(packageName)
@@ -2091,31 +1894,6 @@ if (!gotTheLock) {
       new Notification({ title, body }).show()
     })
 
-    ipcMain.handle('llamacpp:check-update', async () => {
-      try {
-        return await checkLlamaCppUpdate()
-      } catch (error) {
-        log.error('Failed to check llamacpp update:', error)
-        throw error
-      }
-    })
-
-    ipcMain.handle('llamacpp:update', async () => {
-      try {
-        sendToRenderer('status:llamacpp', 'setting-up')
-        const result = await updateLlamaCpp((status) => {
-          sendToRenderer('status:llamacpp-setup', status)
-        })
-        sendToRenderer('status:llamacpp', 'ready')
-        return result
-      } catch (error) {
-        log.error('Failed to update llamacpp:', error)
-        sendToRenderer('status:llamacpp', 'failed')
-        sendToRenderer('error', { message: `llamacpp update failed: ${error?.message}` })
-        throw error
-      }
-    })
-
     // ─── Startup ──────────────────────────────────────
 
     // Create tray
@@ -2141,7 +1919,6 @@ if (!gotTheLock) {
 
     // Validate stale PIDs from previous crash
     validateOpenTerminalProcess()
-    validateLlamaCppProcess()
 
     // Auto-start Open Terminal if previously enabled
     if (CONFIG?.openTerminal?.enabled) {
@@ -2155,21 +1932,6 @@ if (!gotTheLock) {
       } catch (error) {
         log.error('Auto-start Open Terminal failed:', error)
         sendToRenderer('status:open-terminal', 'failed')
-      }
-    }
-
-    // Auto-start llama.cpp if previously enabled
-    if (CONFIG?.llamaCpp?.enabled) {
-      try {
-        sendToRenderer('status:llamacpp', 'starting')
-        const result = await startLlamaCpp((status) => {
-          sendToRenderer('status:llamacpp-setup', status)
-        })
-        sendToRenderer('status:llamacpp', 'started')
-        sendToRenderer('llamacpp:ready', result)
-      } catch (error) {
-        log.error('Auto-start llama.cpp failed:', error)
-        sendToRenderer('status:llamacpp', 'failed')
       }
     }
 
@@ -2216,7 +1978,6 @@ if (!gotTheLock) {
 
   app.on('before-quit', async () => {
     isQuiting = true
-    await stopLlamaCpp()
     await stopOpenTerminal()
     await stopServerHandler()
     globalShortcut.unregisterAll()

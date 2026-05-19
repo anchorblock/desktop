@@ -6,7 +6,6 @@
 
   let openWebuiVersion = $state<string | null>(null)
   let openTerminalVersion = $state<string | null>(null)
-  let llamaCppVersion = $state<string | null>(null)
 
   // Update state
   type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'up-to-date' | 'error'
@@ -128,11 +127,6 @@
   onMount(async () => {
     openWebuiVersion = await window.electronAPI.getPackageVersion('open-webui')
     openTerminalVersion = await window.electronAPI.getPackageVersion('open-terminal')
-
-    try {
-      const info = await window.electronAPI.getLlamaCppInfo()
-      llamaCppVersion = info?.version ?? null
-    } catch {}
 
     // Listen for update events from main process
     cleanupDataListener = window.electronAPI.onData((data: any) => {
@@ -268,16 +262,6 @@
     >
       <div class="text-[13px] opacity-70">{$i18n.t('settings.about.openTerminalVersion')}</div>
       <div class="text-[12px] opacity-30 group-hover:opacity-50 transition">{openTerminalVersion}</div>
-    </button>
-  {/if}
-
-  {#if llamaCppVersion}
-    <button
-      class="w-full py-4 flex items-center justify-between bg-transparent border-none cursor-pointer group"
-      onclick={() => openRelease('ggml-org/llama.cpp', llamaCppVersion!, '')}
-    >
-      <div class="text-[13px] opacity-70">{$i18n.t('settings.about.llamaCppVersion')}</div>
-      <div class="text-[12px] opacity-30 group-hover:opacity-50 transition">{llamaCppVersion}</div>
     </button>
   {/if}
 

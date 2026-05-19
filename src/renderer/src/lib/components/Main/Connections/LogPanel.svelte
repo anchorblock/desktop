@@ -5,7 +5,7 @@
   import LogViewer from '../../common/LogViewer.svelte'
 
   interface Props {
-    activeLog: 'server' | 'open-terminal' | 'llama-server'
+    activeLog: 'server' | 'open-terminal'
     serviceReady: boolean
     statusText?: string
     connectPty: (callback: (data: string) => void) => void
@@ -43,8 +43,7 @@
 
   const logLabels: Record<string, () => string> = {
     'server': () => $i18n.t('statusBar.server'),
-    'open-terminal': () => $i18n.t('sidebar.openTerminal'),
-    'llama-server': () => $i18n.t('sidebar.llamaCpp')
+    'open-terminal': () => $i18n.t('sidebar.openTerminal')
   }
 
   const onDragStart = (e: MouseEvent) => {
