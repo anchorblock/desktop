@@ -6,6 +6,7 @@
   import LocalInstall from '../../Setup/LocalInstall.svelte'
   import GetStartedModal from './GetStartedModal.svelte'
   import AddConnectionModal from './AddConnectionModal.svelte'
+  import OmnizenSignIn from './OmnizenSignIn.svelte'
   import landingVideo from '../../../../assets/landing.mp4'
 
   interface Props {
@@ -454,6 +455,12 @@
                       {installStatus}
                     </div>
                   {/if}
+                {/if}
+
+                {#if installPhase !== 'working' && localInstalled}
+                  <div class="mt-6">
+                    <OmnizenSignIn />
+                  </div>
                 {/if}
 
                 {#if installPhase !== 'working'}

@@ -61,6 +61,8 @@ import {
 
 import { initUpdater, checkForUpdates, downloadUpdate, installUpdate } from './updater'
 
+import { deviceLogin, readCreds, clearCreds, isSignedIn } from './utils/omnizen'
+
 import log from 'electron-log'
 log.transports.file.resolvePathFn = () => getLogFilePath('main')
 
@@ -1516,6 +1518,33 @@ if (!gotTheLock) {
 
     ipcMain.handle('validate:url', async (_event, url: string) => {
       return await validateRemoteUrl(url)
+    })
+
+    // Omnizen — device-flow sign-in + creds. Restart the local server
+    // after a successful login so the bundled Open WebUI picks up the
+    // injected OPENAI_* env on the next boot.
+    ipcMain.handle('omnizen:status', async () => ({ signedIn: await isSignedIn() }))
+    ipcMain.handle('omnizen:login', async (event) => {
+      const creds = await deviceLogin((info) => {
+        event.sender.send('omnizen:pending', info)
+      })
+      try {
+        await stopServerHandler()
+        await startServerHandler()
+      } catch (err) {
+        log.warn('omnizen: post-login server restart failed', err)
+      }
+      return { signedIn: true, openai_base_url: creds.openai_base_url }
+    })
+    ipcMain.handle('omnizen:logout', async () => {
+      await clearCreds()
+      try {
+        await stopServerHandler()
+        await startServerHandler()
+      } catch (err) {
+        log.warn('omnizen: post-logout server restart failed', err)
+      }
+      return { signedIn: false }
     })
 
     // Updater

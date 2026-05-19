@@ -135,7 +135,18 @@ const api = {
   getChangelog: () => ipcRenderer.invoke('app:changelog'),
 
   // Auth token relay from webview
-  setAuthToken: (token: string) => ipcRenderer.invoke('app:setAuthToken', token)
+  setAuthToken: (token: string) => ipcRenderer.invoke('app:setAuthToken', token),
+
+  // Omnizen sign-in
+  omnizenStatus: () => ipcRenderer.invoke('omnizen:status'),
+  omnizenLogin: () => ipcRenderer.invoke('omnizen:login'),
+  omnizenLogout: () => ipcRenderer.invoke('omnizen:logout'),
+  onOmnizenPending: (cb: (info: { user_code: string; verification_uri: string }) => void) => {
+    const handler = (_e: unknown, info: { user_code: string; verification_uri: string }) =>
+      cb(info)
+    ipcRenderer.on('omnizen:pending', handler)
+    return () => ipcRenderer.removeListener('omnizen:pending', handler)
+  }
 }
 
 if (process.contextIsolated) {
