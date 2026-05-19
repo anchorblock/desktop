@@ -10,7 +10,8 @@
   let errorMsg = $state('')
   let cleanup: (() => void) | undefined
 
-  const api = (): any => (globalThis as any).electronAPI
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const api = (): any => (window as any).electronAPI
 
   async function refresh(): Promise<void> {
     try {

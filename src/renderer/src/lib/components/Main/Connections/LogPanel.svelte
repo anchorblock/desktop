@@ -105,7 +105,7 @@
     </div>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="flex items-center gap-0.5" onclick={(e) => e.stopPropagation()}>
-      <!-- Stop button (Open Terminal / llama.cpp only) -->
+      <!-- Stop button (Open Terminal only) -->
       {#if onStop && serviceReady}
         <button
           class="p-1 rounded-md hover:bg-white/[0.08] transition bg-transparent border-none cursor-pointer {stopping ? 'opacity-30 pointer-events-none' : 'opacity-40 hover:opacity-80'} text-white"

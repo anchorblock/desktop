@@ -54,7 +54,7 @@ export const getUserDataPath = (): string => {
 }
 
 /**
- * Root directory for heavyweight data (Python, models, llama.cpp).
+ * Root directory for heavyweight data (Python, models).
  * Reads `installDir` from config.json synchronously so it's available
  * before any async init. Falls back to `getUserDataPath()`.
  */
