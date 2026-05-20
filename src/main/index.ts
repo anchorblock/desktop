@@ -70,6 +70,13 @@ import icon from '../../resources/icon.png?asset'
 
 import { existsSync, writeFileSync, unlinkSync } from 'fs'
 
+// Workaround for a V8 Turbofan/Maglev miscompilation in the V8 build
+// bundled with Electron 39 that crashes the renderer with a
+// RepresentationChangerError on Int32Sub. Disabling Maglev (the
+// mid-tier compiler) suppresses the bug with minimal perf impact.
+// Drop this once Electron rolls in the upstream V8 fix.
+app.commandLine.appendSwitch('js-flags', '--no-maglev')
+
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox')
 
