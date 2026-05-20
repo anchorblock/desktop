@@ -7,6 +7,7 @@
   import GetStartedModal from './GetStartedModal.svelte'
   import AddConnectionModal from './AddConnectionModal.svelte'
   import OmnizenSignIn from './OmnizenSignIn.svelte'
+  import OmnizenSignInBanner from './OmnizenSignInBanner.svelte'
   import landingVideo from '../../../../assets/landing.mp4'
 
   interface Props {
@@ -263,6 +264,14 @@
     ? 'border-l border-black/[0.08] dark:border-white/[0.08] rounded-tl-xl'
     : 'border-black/[0.08] dark:border-white/[0.10]'}"
 >
+  <!-- Persistent Omnizen sign-in banner. Surfaces above the webview
+       whenever creds aren't present, so users don't end up using
+       a local-only OpenWebUI without realising Omnizen routing is
+       the integration point. Hides itself when signed in. -->
+  {#if view === 'connected'}
+    <OmnizenSignInBanner />
+  {/if}
+
   <!-- Webviews — all open connections stay alive, only active one visible -->
   {#each [...openConnections] as [connId, connUrl] (connId)}
     <webview
