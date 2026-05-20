@@ -70,6 +70,13 @@ import icon from '../../resources/icon.png?asset'
 
 import { existsSync, writeFileSync, unlinkSync } from 'fs'
 
+// Workaround for a V8 Turbofan/Maglev miscompilation in the V8 build
+// bundled with Electron 39 that crashes the renderer with a
+// RepresentationChangerError on Int32Sub. Disabling Maglev (the
+// mid-tier compiler) suppresses the bug with minimal perf impact.
+// Drop this once Electron rolls in the upstream V8 fix.
+app.commandLine.appendSwitch('js-flags', '--no-maglev')
+
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox')
 
@@ -658,9 +665,21 @@ function createMainWindow(show = true): void {
   }
 
   if (show) {
-    mainWindow.on('ready-to-show', () => {
-      mainWindow?.show()
-    })
+    let shown = false
+    const reveal = (): void => {
+      if (shown || !mainWindow || mainWindow.isDestroyed()) return
+      shown = true
+      mainWindow.show()
+      mainWindow.focus()
+      mainWindow.moveTop()
+      log.info('Main window shown')
+    }
+    mainWindow.on('ready-to-show', reveal)
+    // Fallback: on Wayland sessions and some compositors, ready-to-show
+    // occasionally fails to fire (or the compositor drops the show()
+    // call when the window isn't focused). After 4 s, force-reveal so
+    // the user isn't staring at an apparently-broken launch.
+    setTimeout(reveal, 4000)
   }
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
