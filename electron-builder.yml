@@ -59,11 +59,16 @@ dmg:
       type: link
       path: /Applications
 linux:
+  # Flatpak is chronically flaky on the ubuntu-latest-x64 runner: the
+  # electronjs Electron2 BaseApp cache rename races, exits the job 1,
+  # and strands the otherwise-successful .deb/.AppImage/.snap uploads.
+  # AppImage already covers the distro-agnostic use case Flatpak users
+  # would reach for, so we drop it from the matrix until upstream is
+  # less brittle.
   target:
     - AppImage
     - snap
     - deb
-    - flatpak
   maintainer: omnizen.ai
   vendor: Anchorblock Venture Capital
   synopsis: Native chat app routing every frontier model through your Omnizen plan
@@ -84,23 +89,6 @@ snap:
   artifactName: ${name}_${arch}.${ext}
 appImage:
   artifactName: ${name}_${arch}.${ext}
-flatpak:
-  base: org.electronjs.Electron2.BaseApp
-  baseVersion: '23.08'
-  runtime: org.freedesktop.Platform
-  runtimeVersion: '23.08'
-  sdk: org.freedesktop.Sdk
-  artifactName: ${name}.flatpak
-  finishArgs:
-    - --share=ipc
-    - --socket=x11
-    - --socket=wayland
-    - --socket=pulseaudio
-    - --share=network
-    - --device=dri
-    - --filesystem=home
-    - --talk-name=org.freedesktop.Notifications
-    - --talk-name=org.freedesktop.portal.Desktop
 npmRebuild: true
 publish:
   provider: github
