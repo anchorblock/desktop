@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.29" date="2026-05-21">
+      <description>
+        <p>Fixes ERR_CONNECTION_REFUSED after sign-in. The 2.5 s static wait before reloading the webview wasn't enough for the local OpenWebUI to restart (it takes 6-10 s on first run). Now we poll the local URL until it accepts connections, then reload. Also hides the 'Open in Browser' fallback for localhost connections - opening the bundled server in a separate browser doesn't help.</p>
+      </description>
+    </release>
     <release version="0.0.28" date="2026-05-21">
       <description>
         <p>Sets WEBUI_AUTH=False on the bundled OpenWebUI so users aren't blocked behind a second local login screen after signing in with Omnizen. The desktop is single-user; Omnizen sign-in is the only auth boundary that matters. Without this, users hit a login form with no way to create an account because OpenWebUI's default ENABLE_SIGNUP is false.</p>

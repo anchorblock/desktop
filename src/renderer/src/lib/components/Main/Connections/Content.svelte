@@ -114,22 +114,40 @@
   // When the user signs in via OmnizenSignInBanner the main process
   // restarts the local server with OPENAI_API_BASE_URLS+KEYS injected,
   // but the existing webview is still attached to the dying old server
-  // and shows a blank/broken page. Wait briefly for the restart, then
-  // reload every open webview so OpenWebUI re-fetches /api/config and
-  // picks up the new Omnizen-routed model list.
-  const reloadAllWebviewsAfterSignIn = () => {
-    // Give the local server ~2.5 s to come back up. Conservative; the
-    // worst case is a second of blank webview before the reload fires.
-    setTimeout(() => {
-      const container = document.querySelector('.content-webview-container')
-      if (!container) return
-      const webviews = container.querySelectorAll('webview') as NodeListOf<any>
-      webviews.forEach((wv) => {
-        webviewErrors.delete(wv.getAttribute('partition')?.replace('persist:connection-', '') ?? '')
-        wv?.reload?.()
-      })
-      webviewErrors = new Map(webviewErrors)
-    }, 2500)
+  // and shows ERR_CONNECTION_REFUSED until the new uvicorn starts
+  // accepting connections (~6-10 s on first restart after Python
+  // install, faster on subsequent restarts).
+  //
+  // Poll the local URL until it returns any HTTP response, then reload
+  // every open webview. Caps out at 30 s so a wedged server doesn't
+  // leave the webview spinning forever - if we time out, the existing
+  // webview-failed-to-load overlay takes over and the user can hit
+  // Retry.
+  const reloadAllWebviewsAfterSignIn = async () => {
+    const url = openConnections.get(activeConnectionId)
+    if (!url) return
+
+    const deadline = Date.now() + 30_000
+    while (Date.now() < deadline) {
+      try {
+        // HEAD avoids loading the full HTML; we only care that the
+        // server is accepting connections.
+        const res = await fetch(url, { method: 'HEAD', cache: 'no-store' })
+        if (res.ok || res.status === 401 || res.status === 405) break
+      } catch {
+        // ECONNREFUSED while server is still starting - keep polling.
+      }
+      await new Promise((r) => setTimeout(r, 500))
+    }
+
+    const container = document.querySelector('.content-webview-container')
+    if (!container) return
+    const webviews = container.querySelectorAll('webview') as NodeListOf<any>
+    webviews.forEach((wv) => {
+      webviewErrors.delete(wv.getAttribute('partition')?.replace('persist:connection-', '') ?? '')
+      wv?.reload?.()
+    })
+    webviewErrors = new Map(webviewErrors)
   }
 
   const openActiveInBrowser = () => {
@@ -344,12 +362,18 @@
           >
             {$i18n.t('common.retry')}
           </button>
-          <button
-            class="px-4 py-2 rounded-xl text-[13px] bg-black/[0.04] dark:bg-white/[0.06] text-[#1d1d1f] dark:text-[#fafafa] border-none cursor-pointer opacity-60 hover:opacity-90 transition active:scale-[0.98]"
-            onclick={openActiveInBrowser}
-          >
-            {$i18n.t('setup.openInBrowser')}
-          </button>
+          {#if openConnections.get(activeConnectionId)?.match(/^https?:\/\/(?!(127\.0\.0\.1|localhost|0\.0\.0\.0)(:|\/))/i)}
+            <!-- Only offer "Open in browser" for genuinely remote URLs.
+                 Localhost is the bundled OpenWebUI - opening it in the
+                 user's default browser doesn't help (different cookie
+                 jar, different auth state, no relevance). -->
+            <button
+              class="px-4 py-2 rounded-xl text-[13px] bg-black/[0.04] dark:bg-white/[0.06] text-[#1d1d1f] dark:text-[#fafafa] border-none cursor-pointer opacity-60 hover:opacity-90 transition active:scale-[0.98]"
+              onclick={openActiveInBrowser}
+            >
+              {$i18n.t('setup.openInBrowser')}
+            </button>
+          {/if}
         </div>
       </div>
     </div>
