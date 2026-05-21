@@ -18,11 +18,14 @@ asarUnpack:
   - node_modules/node-pty/**
 win:
   executableName: omnizen
+  publisherName: Anchorblock Venture Capital
 nsis:
   artifactName: ${name}-${arch}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  license: LICENSE
+  warningsAsErrors: false
 mac:
   target:
     - target: dmg
@@ -31,6 +34,7 @@ mac:
         - x64
         - arm64
   artifactName: ${name}-${arch}-mac.${ext}
+  category: public.app-category.productivity
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -38,6 +42,9 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    - NSHumanReadableCopyright: © 2026 Anchorblock Venture Capital. AGPL-3.0-or-later.
+    - CFBundleGetInfoString: Omnizen Desktop — every frontier model on one plan.
+    - NSSupportsAutomaticGraphicsSwitching: true
 dmg:
   artifactName: ${name}-${arch}.${ext}
   title: ${productName}
@@ -56,7 +63,19 @@ linux:
     - deb
     - flatpak
   maintainer: omnizen.ai
-  category: Utility
+  vendor: Anchorblock Venture Capital
+  synopsis: Native chat app routing every frontier model through your Omnizen plan
+  description: |
+    Omnizen Desktop is a fork of Open WebUI Desktop, pre-wired to your Omnizen
+    subscription. Chat history and uploaded files stay on your machine; every
+    chat completion routes through api.omnizen.ai so one key powers every
+    frontier model.
+  category: Network
+  extraResources:
+    # AppStream metainfo so GNOME Software / KDE Discover render
+    # name + license + description for the installed package.
+    - from: build/com.omnizen.desktop.metainfo.xml
+      to: ../share/metainfo/com.omnizen.desktop.metainfo.xml
 deb:
   artifactName: ${name}_${arch}.${ext}
 snap:
