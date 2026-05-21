@@ -75,7 +75,7 @@ const api = {
   getServerLogs: () => ipcRenderer.invoke('server:logs'),
   clearServerLogs: () => ipcRenderer.invoke('server:logs:clear'),
 
-  // PTY — MessagePort stays in preload, renderer uses these functions
+  // PTY - MessagePort stays in preload, renderer uses these functions
   listPtys: () => ipcRenderer.invoke('pty:list'),
   connectPty: (onOutput: (data: string) => void, pid?: number) => {
     ptyOutputCallback = onOutput

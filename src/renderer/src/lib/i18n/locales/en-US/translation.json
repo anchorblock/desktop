@@ -84,7 +84,7 @@
   "setup.connectionManager.failed": "Failed",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "Select a connection to get started",
-  "main.heroDescription": "Sign in to Omnizen — or connect to any Open WebUI server.",
+  "main.heroDescription": "Sign in to Omnizen - or connect to any Open WebUI server.",
   "main.getStarted": "Get Started",
   "main.getStarted.title": "Set up your environment",
   "main.getStarted.description": "Choose optional services to install alongside Open WebUI.",
@@ -207,7 +207,7 @@
   "settings.about.upToDate": "You're on the latest version",
   "settings.about.versionAvailable": "Version {{version}} is available",
   "settings.about.downloadingPercent": "Downloading… {{percent}}%",
-  "settings.about.updateReady": "Update ready — restart to apply",
+  "settings.about.updateReady": "Update ready - restart to apply",
   "settings.about.checkForUpdates": "Check for Updates",
   "settings.about.checking": "Checking…",
   "settings.about.downloadUpdate": "Download Update",
@@ -216,5 +216,6 @@
   "settings.about.noChangelog": "No changelog entries yet.",
   "settings.about.viewOnGithub": "View on GitHub →",
   "settings.about.copyright": "Copyright (c) 2026 Open WebUI Inc. All rights reserved.",
-  "settings.about.createdBy": "Created by Timothy J. Baek"
+  "settings.about.createdBy": "Created by Timothy J. Baek",
+  "main.welcomeSubtitle": "Sign in with Omnizen to chat with every frontier model."
 }

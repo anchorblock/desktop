@@ -49,7 +49,7 @@ export const startOpenTerminal = async (
   await stopOpenTerminal()
 
   if (!isPythonInstalled()) {
-    log.info('Python not installed — installing automatically for Open Terminal…')
+    log.info('Python not installed - installing automatically for Open Terminal…')
     onStatus?.('Installing Python…')
     try {
       const ok = await installPython(undefined, onStatus)
@@ -158,7 +158,7 @@ export const startOpenTerminal = async (
   const serverUrl = `http://${host}:${availablePort}`
   url = serverUrl
   status = 'started'
-  log.info(`Open Terminal started — PID: ${spawnedPid}, URL: ${serverUrl}`)
+  log.info(`Open Terminal started - PID: ${spawnedPid}, URL: ${serverUrl}`)
 
   return { url: serverUrl, apiKey: generatedKey, pid: spawnedPid }
 }

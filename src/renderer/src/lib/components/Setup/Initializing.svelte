@@ -38,7 +38,7 @@
       return
     }
 
-    // Enough space now — proceed with Python install
+    // Enough space now - proceed with Python install
     appState.set('initializing')
     try {
       await api.installPython()

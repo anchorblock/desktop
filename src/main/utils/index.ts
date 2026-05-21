@@ -570,13 +570,23 @@ export const startServer = async (
   // creds yet we just spawn the upstream defaults and the renderer
   // surfaces the sign-in CTA.
   const creds = await readCreds()
-  const omnizenEnv = creds
-    ? {
-        OPENAI_API_BASE_URLS: creds.openai_base_url,
-        OPENAI_API_KEYS: creds.api_key,
-        BYPASS_MODEL_ACCESS_CONTROL: 'True'
-      }
-    : {}
+  const omnizenEnv = {
+    // Brand the embedded OpenWebUI as "Omnizen" so the webview title,
+    // sidebar header, and "powered by" footer don't say "Open WebUI"
+    // inside the Omnizen Desktop shell.
+    WEBUI_NAME: 'Omnizen',
+    WEBUI_URL: 'https://omnizen.ai',
+    // Route chat completions through api.omnizen.ai when the user has
+    // signed in. Without creds we spawn the upstream defaults and the
+    // renderer's persistent banner prompts the user to sign in.
+    ...(creds
+      ? {
+          OPENAI_API_BASE_URLS: creds.openai_base_url,
+          OPENAI_API_KEYS: creds.api_key,
+          BYPASS_MODEL_ACCESS_CONTROL: 'True'
+        }
+      : {})
+  }
   const host = expose ? '0.0.0.0' : '127.0.0.1'
   if (!isPythonInstalled()) throw new Error('Python is not installed')
   if (!isPackageInstalled('open-webui')) throw new Error('open-webui package is not installed')
@@ -660,7 +670,7 @@ export async function stopAllServers(): Promise<void> {
   const pidsToStop = Array.from(serverPIDs)
   if (pidsToStop.length === 0) return
 
-  // Kill PTY processes directly — cleaner than process tree termination
+  // Kill PTY processes directly - cleaner than process tree termination
   for (const pid of pidsToStop) {
     const ptyProc = serverPtyProcesses.get(pid)
     if (ptyProc) {

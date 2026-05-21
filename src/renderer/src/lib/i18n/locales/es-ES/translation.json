@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "Fallido",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "Seleccione una conexión para comenzar",
-  "main.heroDescription": "Inicie sesión en Omnizen — o conéctese a cualquier servidor Open WebUI.",
+  "main.heroDescription": "Inicie sesión en Omnizen - o conéctese a cualquier servidor Open WebUI.",
   "main.getStarted": "Comenzar",
   "main.getStarted.title": "Configura tu entorno",
   "main.getStarted.description": "Elige servicios opcionales para instalar junto con Open WebUI.",
@@ -196,7 +196,7 @@
   "settings.about.upToDate": "Tiene la versión más reciente",
   "settings.about.versionAvailable": "La versión {{version}} está disponible",
   "settings.about.downloadingPercent": "Descargando… {{percent}}%",
-  "settings.about.updateReady": "Actualización lista — reiniciar para aplicar",
+  "settings.about.updateReady": "Actualización lista - reiniciar para aplicar",
   "settings.about.checkForUpdates": "Buscar actualizaciones",
   "settings.about.checking": "Comprobando…",
   "settings.about.downloadUpdate": "Descargar actualización",
@@ -205,5 +205,6 @@
   "settings.about.noChangelog": "Aún no hay entradas en el registro de cambios.",
   "settings.about.viewOnGithub": "Ver en GitHub →",
   "settings.about.copyright": "Copyright (c) 2026 Open WebUI Inc. All rights reserved.",
-  "settings.about.createdBy": "Created by Timothy J. Baek"
+  "settings.about.createdBy": "Created by Timothy J. Baek",
+  "main.welcomeSubtitle": "Inicie sesión en Omnizen para chatear con todos los modelos frontera."
 }

@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 /**
- * ServiceLock — reusable singleton lock for managed child processes.
+ * ServiceLock - reusable singleton lock for managed child processes.
  *
  * In Node.js, the synchronous check-and-set before any `await` is atomic
  * (event loop guarantees no interleaving). This class makes that pattern
@@ -26,11 +26,11 @@ export class ServiceLock {
 
   /**
    * Try to acquire the lock. Returns false if already locked.
-   * This is synchronous — no interleaving possible in Node.js event loop.
+   * This is synchronous - no interleaving possible in Node.js event loop.
    */
   acquire(): boolean {
     if (this.locked) {
-      log.info(`[${this.name}] Lock held — rejecting duplicate start`)
+      log.info(`[${this.name}] Lock held - rejecting duplicate start`)
       return false
     }
     this.locked = true

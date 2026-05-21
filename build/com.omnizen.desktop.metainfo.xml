@@ -35,8 +35,8 @@
     </p>
     <p>Highlights:</p>
     <ul>
-      <li>One sign-in, every frontier model — OpenAI, Anthropic, Gemini, DeepSeek and more, on your single Omnizen plan.</li>
-      <li>Local data — chat history and uploads stay on your computer, not on a hosted multi-tenant database.</li>
+      <li>One sign-in, every frontier model - OpenAI, Anthropic, Gemini, DeepSeek and more, on your single Omnizen plan.</li>
+      <li>Local data - chat history and uploads stay on your computer, not on a hosted multi-tenant database.</li>
       <li>System-wide Spotlight + voice input.</li>
       <li>Auto-updates from the Omnizen release feed.</li>
     </ul>
@@ -83,9 +83,14 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.25" date="2026-05-21">
+      <description>
+        <p>Onboarding + brand polish: Omnizen sign-in is now the primary first-launch CTA (no more "select a connection" dead-end), the embedded chat surface brands as Omnizen via WEBUI_NAME, and em-dashes are stripped from UI strings.</p>
+      </description>
+    </release>
     <release version="0.0.24" date="2026-05-21">
       <description>
-        <p>Drops the Flatpak build target — the electronjs BaseApp cache was racing on the GitHub Linux x64 runner and stranding the otherwise-successful .deb / .AppImage / .snap uploads. AppImage covers the same use case.</p>
+        <p>Drops the Flatpak build target - the electronjs BaseApp cache was racing on the GitHub Linux x64 runner and stranding the otherwise-successful .deb / .AppImage / .snap uploads. AppImage covers the same use case.</p>
       </description>
     </release>
     <release version="0.0.23" date="2026-05-21">
@@ -95,7 +100,7 @@
     </release>
     <release version="0.0.21" date="2026-05-21">
       <description>
-        <p>First full-matrix alpha — Linux ARM64 builds now ship alongside x64. Drops phantomjs-prebuilt transitive dependency that was blocking npm ci on arm64 runners.</p>
+        <p>First full-matrix alpha - Linux ARM64 builds now ship alongside x64. Drops phantomjs-prebuilt transitive dependency that was blocking npm ci on arm64 runners.</p>
       </description>
     </release>
     <release version="0.0.20" date="2026-05-21">

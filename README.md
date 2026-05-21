@@ -31,7 +31,7 @@ Internet required on first launch. [All releases →](https://github.com/anchorb
 
 🔑 **Routed to Omnizen.** Sign in once via your browser; the local server uses your Omnizen plan to call every frontier model behind one bill.
 
-☁️ **Add other servers if you want.** The multi-connection sidebar still works — point at any Open WebUI server alongside Omnizen.
+☁️ **Add other servers if you want.** The multi-connection sidebar still works - point at any Open WebUI server alongside Omnizen.
 
 ## Highlights
 

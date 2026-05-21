@@ -39,7 +39,7 @@
   const otStarting = $derived(openTerminalStatus === 'starting' || openTerminalStatus === 'stopping')
   const otFailed = $derived(openTerminalStatus === 'failed')
 
-  // Derived visibility — show each section only when installed or active
+  // Derived visibility - show each section only when installed or active
   const showServer = $derived(openWebuiInstalled || !!serverStatus)
   const showTerminal = $derived(openTerminalInstalled || !!openTerminalStatus)
 </script>

@@ -65,7 +65,7 @@
     let lineIdx = 0
     const typeLine = () => {
       if (lineIdx >= lines.length) {
-        // All lines done — show logo with knock sound
+        // All lines done - show logo with knock sound
         showTypewriter = false
         typewriterTimers.push(setTimeout(() => {
           showReveal = true

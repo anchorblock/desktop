@@ -272,7 +272,7 @@
     <OmnizenSignInBanner />
   {/if}
 
-  <!-- Webviews — all open connections stay alive, only active one visible -->
+  <!-- Webviews - all open connections stay alive, only active one visible -->
   {#each [...openConnections] as [connId, connUrl] (connId)}
     <webview
       src={connUrl}
@@ -400,11 +400,16 @@
     <div class="flex-1 flex items-center justify-center px-6 relative overflow-hidden">
       {#if view === 'welcome'}
         {#if remoteConnections.length > 0 || localInstalled}
-          <div class="text-center max-w-[320px]" in:fade={{ duration: 200 }}>
-            <div class="text-lg opacity-80 mb-1.5">{$i18n.t('app.name')}</div>
-            <div class="text-[12px] opacity-30 mb-6">
-              {$i18n.t('main.selectConnection')}
+          <div class="max-w-md mx-auto" in:fade={{ duration: 200 }}>
+            <div class="text-center mb-6">
+              <div class="text-2xl font-medium tracking-tight mb-2 text-[#1d1d1f] dark:text-[#fafafa]">
+                {$i18n.t('app.name')}
+              </div>
+              <div class="text-[13px] opacity-60 text-[#1d1d1f] dark:text-[#fafafa]">
+                {$i18n.t('main.welcomeSubtitle')}
+              </div>
             </div>
+            <OmnizenSignIn />
           </div>
         {:else}
           <!-- Theme-responsive hero section -->

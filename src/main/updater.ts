@@ -57,7 +57,7 @@ export function initUpdater(window: BrowserWindow): void {
 
 export async function checkForUpdates(): Promise<void> {
   if (!app.isPackaged) {
-    log.info('Skipping update check — app is not packaged')
+    log.info('Skipping update check - app is not packaged')
     send('update:not-available')
     return
   }
