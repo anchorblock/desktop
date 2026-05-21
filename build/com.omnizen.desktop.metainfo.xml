@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.26" date="2026-05-21">
+      <description>
+        <p>Linux: fixes the menu/icon visibility - the auto-generated .desktop file was invalid because the multi-line description leaked into the Comment field, so GNOME never indexed the app. Replaces with an explicit single-line Comment plus Categories, Keywords, and a multi-size icon ladder (16, 24, 32, 48, 64, 128, 256, 512, 1024 px) so menu launchers can render at small sizes.</p>
+      </description>
+    </release>
     <release version="0.0.25" date="2026-05-21">
       <description>
         <p>Onboarding + brand polish: Omnizen sign-in is now the primary first-launch CTA (no more "select a connection" dead-end), the embedded chat surface brands as Omnizen via WEBUI_NAME, and em-dashes are stripped from UI strings.</p>
