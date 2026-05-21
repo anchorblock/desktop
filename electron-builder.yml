@@ -18,7 +18,9 @@ asarUnpack:
   - node_modules/node-pty/**
 win:
   executableName: omnizen
-  publisherName: Anchorblock Venture Capital
+  legalTrademarks: © 2026 Anchorblock Venture Capital
+  # publisherName lives under signtoolOptions in electron-builder 26.x but
+  # only matters when we actually sign — skipping until we have a cert.
 nsis:
   artifactName: ${name}-${arch}-setup.${ext}
   shortcutName: ${productName}
