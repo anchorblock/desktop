@@ -111,6 +111,27 @@
     }
   }
 
+  // When the user signs in via OmnizenSignInBanner the main process
+  // restarts the local server with OPENAI_API_BASE_URLS+KEYS injected,
+  // but the existing webview is still attached to the dying old server
+  // and shows a blank/broken page. Wait briefly for the restart, then
+  // reload every open webview so OpenWebUI re-fetches /api/config and
+  // picks up the new Omnizen-routed model list.
+  const reloadAllWebviewsAfterSignIn = () => {
+    // Give the local server ~2.5 s to come back up. Conservative; the
+    // worst case is a second of blank webview before the reload fires.
+    setTimeout(() => {
+      const container = document.querySelector('.content-webview-container')
+      if (!container) return
+      const webviews = container.querySelectorAll('webview') as NodeListOf<any>
+      webviews.forEach((wv) => {
+        webviewErrors.delete(wv.getAttribute('partition')?.replace('persist:connection-', '') ?? '')
+        wv?.reload?.()
+      })
+      webviewErrors = new Map(webviewErrors)
+    }, 2500)
+  }
+
   const openActiveInBrowser = () => {
     const connUrl = openConnections.get(activeConnectionId)
     if (connUrl) {
@@ -122,6 +143,11 @@
   onMount(async () => {
     // Fetch the content preload path once
     contentPreloadPath = await window.electronAPI.getContentPreloadPath()
+
+    // Bridge from OmnizenSignInBanner: when user signs in successfully,
+    // banner dispatches this event so we can reload the active webview
+    // once the restarted local server is ready.
+    window.addEventListener('omnizen:signed-in', reloadAllWebviewsAfterSignIn)
 
     const observer = new MutationObserver(() => {
       const container = document.querySelector('.content-webview-container')
@@ -255,7 +281,10 @@
       observer.observe(target, { childList: true, subtree: true })
     }
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('omnizen:signed-in', reloadAllWebviewsAfterSignIn)
+    }
   })
 </script>
 
