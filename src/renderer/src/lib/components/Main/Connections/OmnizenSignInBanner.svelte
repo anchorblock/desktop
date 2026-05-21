@@ -1,16 +1,22 @@
 <script lang="ts">
-  // Slim persistent banner at the top of the chat content area. Surfaces
-  // the Omnizen device-flow sign-in whenever creds aren't present, so
-  // users don't accidentally end up chatting against a local-only
-  // OpenWebUI (with Ollama, etc.) without realising Omnizen routing
-  // is the whole point of this fork.
+  // Full-area sign-in cover that sits on top of the chat webview
+  // whenever Omnizen creds aren't present. The webview underneath is
+  // attached to a local OpenWebUI that has no model backend until the
+  // user signs in (the main process injects OPENAI_API_BASE_URLS +
+  // OPENAI_API_KEYS only when creds exist), so without this cover the
+  // user sees a broken / blank chat surface and no way out.
   //
-  // Auto-hides once the user is signed in. Cannot be permanently
-  // dismissed - the desktop is built around Omnizen routing, so missing
-  // creds is a state we want visible until resolved.
+  // After a successful sign-in:
+  //   1. Main process writes creds + restarts the local server with
+  //      Omnizen routing injected (handled in main/index.ts).
+  //   2. We dispatch a 'omnizen:signed-in' DOM event so the parent
+  //      Content.svelte can reload the active webview against the
+  //      fresh server.
+  //   3. We fade ourselves out so the user sees the now-Omnizen-backed
+  //      chat surface.
 
   import { onMount, onDestroy } from 'svelte'
-  import { fade, slide } from 'svelte/transition'
+  import { fade } from 'svelte/transition'
 
   type Status = 'unknown' | 'signed-out' | 'pending' | 'signed-in' | 'error'
 
@@ -38,17 +44,14 @@
     try {
       await api()?.omnizenLogin()
       status = 'signed-in'
+      // Notify Content.svelte to reload the webview once the local
+      // server's back up. Content.svelte adds its own small delay so
+      // the OpenWebUI HTTP server has time to accept connections.
+      window.dispatchEvent(new CustomEvent('omnizen:signed-in'))
     } catch (err) {
       errorMsg = err instanceof Error ? err.message : String(err)
       status = 'error'
     }
-  }
-
-  async function signOut(): Promise<void> {
-    await api()?.omnizenLogout()
-    status = 'signed-out'
-    userCode = ''
-    verificationUri = ''
   }
 
   onMount(() => {
@@ -66,69 +69,68 @@
 
 {#if status === 'signed-out' || status === 'pending' || status === 'error'}
   <div
-    class="absolute top-0 left-0 right-0 z-30 border-b border-black/[0.08] dark:border-white/[0.10] bg-gradient-to-r from-[#fafafa] to-[#f5f5f7] dark:from-[#161616] dark:to-[#0f0f0f] px-4 py-2.5 flex items-center gap-3"
-    in:slide={{ duration: 250 }}
-    out:fade={{ duration: 150 }}
+    class="absolute inset-0 z-30 flex items-center justify-center px-6 bg-[#fafafa] dark:bg-[#0a0a0a]"
+    transition:fade={{ duration: 250 }}
   >
-    <div class="flex-1 min-w-0 flex items-center gap-3">
-      <div class="w-7 h-7 rounded-full bg-black/[0.06] dark:bg-white/[0.08] flex items-center justify-center shrink-0">
-        <svg class="w-3.5 h-3.5 text-[#1d1d1f] dark:text-[#fafafa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+    <div class="w-full max-w-md text-center">
+      <div class="mx-auto mb-5 w-14 h-14 rounded-2xl bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center">
+        <svg class="w-6 h-6 text-[#1d1d1f] dark:text-[#fafafa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
         </svg>
       </div>
-      <div class="flex-1 min-w-0">
-        {#if status === 'pending' && userCode}
-          <div class="text-[12px] text-[#1d1d1f] dark:text-[#fafafa] truncate">
-            Approve sign-in in your browser. Code: <span class="font-mono font-semibold">{userCode}</span>
+
+      <h2 class="text-2xl font-medium tracking-tight mb-2 text-[#1d1d1f] dark:text-[#fafafa]">
+        Sign in to Omnizen
+      </h2>
+      <p class="text-[14px] opacity-60 text-[#1d1d1f] dark:text-[#fafafa] mb-8 leading-relaxed">
+        Chat with every frontier model on one plan. Your data stays on your machine; only chat requests route through api.omnizen.ai.
+      </p>
+
+      {#if status === 'pending' && userCode}
+        <div class="mb-6 p-4 rounded-xl border border-black/[0.08] dark:border-white/[0.10] bg-black/[0.02] dark:bg-white/[0.03]">
+          <div class="text-[11px] uppercase tracking-wider opacity-50 mb-2">Approve in browser</div>
+          <div class="text-2xl font-mono font-semibold tracking-wider mb-3 text-[#1d1d1f] dark:text-[#fafafa]">
+            {userCode}
           </div>
           {#if verificationUri}
-            <div class="text-[11px] opacity-50 truncate">
-              <a class="underline" href={verificationUri} target="_blank" rel="noreferrer">{verificationUri}</a>
-            </div>
+            <a class="text-[12px] underline opacity-60 hover:opacity-100" href={verificationUri} target="_blank" rel="noreferrer">
+              {verificationUri}
+            </a>
           {/if}
-        {:else if status === 'error'}
-          <div class="text-[12px] text-red-600 dark:text-red-400 truncate">
-            Sign-in failed: {errorMsg || 'unknown error'}
-          </div>
-        {:else}
-          <div class="text-[12px] text-[#1d1d1f] dark:text-[#fafafa]">
-            <span class="font-medium">Sign in to Omnizen</span>
-            <span class="opacity-60"> · Route every frontier model through one key.</span>
-          </div>
-        {/if}
-      </div>
-    </div>
-    <button
-      class="shrink-0 inline-flex items-center gap-1.5 bg-black dark:bg-white px-3 py-1.5 rounded-md text-white dark:text-black text-[12px] font-medium transition hover:bg-gray-800 dark:hover:bg-gray-100 border-none disabled:opacity-50"
-      onclick={signIn}
-      disabled={status === 'pending'}
-    >
-      {#if status === 'pending'}
-        <div class="w-3 h-3 rounded-full border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black animate-spin"></div>
-        Waiting…
-      {:else if status === 'error'}
-        Try again
-      {:else}
-        Sign in
+        </div>
       {/if}
-    </button>
-  </div>
-{:else if status === 'signed-in'}
-  <div
-    class="absolute top-0 left-0 right-0 z-30 border-b border-black/[0.04] dark:border-white/[0.04] bg-[#fafafa]/60 dark:bg-[#161616]/60 backdrop-blur px-4 py-1.5 flex items-center gap-3"
-    transition:fade={{ duration: 200 }}
-  >
-    <div class="flex-1 min-w-0 flex items-center gap-2 text-[11px] opacity-60">
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      <span>Signed in to Omnizen - frontier models routed via api.omnizen.ai</span>
+
+      {#if status === 'error' && errorMsg}
+        <div class="mb-6 p-3 rounded-lg text-[12px] text-red-600 dark:text-red-400 bg-red-500/[0.08] border border-red-500/[0.20]">
+          Sign-in failed: {errorMsg}
+        </div>
+      {/if}
+
+      <button
+        class="inline-flex items-center justify-center gap-2 bg-black dark:bg-white px-6 py-3 rounded-xl text-white dark:text-black text-[14px] font-medium transition hover:bg-gray-800 dark:hover:bg-gray-100 border-none disabled:opacity-50 min-w-[200px]"
+        onclick={signIn}
+        disabled={status === 'pending'}
+      >
+        {#if status === 'pending'}
+          <div class="w-4 h-4 rounded-full border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black animate-spin"></div>
+          Waiting for browser approval…
+        {:else if status === 'error'}
+          Try again
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M20.015 4.356v4.992m0 0h-4.992m4.993 0l-3.181-3.183a8.25 8.25 0 00-13.803 3.7" />
+          </svg>
+        {:else}
+          Sign in with Omnizen
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        {/if}
+      </button>
+
+      <p class="mt-6 text-[11px] opacity-40 leading-relaxed">
+        Don't have an Omnizen account?{' '}
+        <a class="underline" href="https://omnizen.ai/sign-up" target="_blank" rel="noreferrer">Sign up at omnizen.ai</a>.
+      </p>
     </div>
-    <button
-      class="shrink-0 text-[11px] opacity-60 hover:opacity-100 underline bg-transparent border-none p-0 text-current cursor-pointer"
-      onclick={signOut}
-    >
-      Sign out
-    </button>
   </div>
 {/if}
