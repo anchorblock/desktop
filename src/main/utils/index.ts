@@ -576,6 +576,14 @@ export const startServer = async (
     // inside the Omnizen Desktop shell.
     WEBUI_NAME: 'Omnizen',
     WEBUI_URL: 'https://omnizen.ai',
+    // Single-user desktop: skip OpenWebUI's built-in login form
+    // entirely. Without this, OpenWebUI defaults to multi-user auth
+    // (ENABLE_SIGNUP=false in modern releases), which strands the user
+    // at a login page with no way to create an account. The Omnizen
+    // sign-in we do in the wrapper IS the auth boundary for the chat;
+    // adding a second local-only OpenWebUI account on top is pure
+    // friction.
+    WEBUI_AUTH: 'False',
     // Route chat completions through api.omnizen.ai when the user has
     // signed in. Without creds we spawn the upstream defaults and the
     // renderer's persistent banner prompts the user to sign in.
