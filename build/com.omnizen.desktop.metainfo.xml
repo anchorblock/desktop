@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.30" date="2026-05-21">
+      <description>
+        <p>OpenWebUI 0.9.5's WEBUI_AUTH=False mode is half-broken (config reports auth disabled but /openai/models still 401s "Not authenticated" because the auto-login never completes inside the webview storage partition). Reverts to default auth + sets ENABLE_SIGNUP=true so the user can create the local admin once on first launch. Two-step on first run (Omnizen sign-in + local OpenWebUI signup) but it actually loads the model list afterwards.</p>
+      </description>
+    </release>
     <release version="0.0.29" date="2026-05-21">
       <description>
         <p>Fixes ERR_CONNECTION_REFUSED after sign-in. The 2.5 s static wait before reloading the webview wasn't enough for the local OpenWebUI to restart (it takes 6-10 s on first run). Now we poll the local URL until it accepts connections, then reload. Also hides the 'Open in Browser' fallback for localhost connections - opening the bundled server in a separate browser doesn't help.</p>

@@ -576,14 +576,20 @@ export const startServer = async (
     // inside the Omnizen Desktop shell.
     WEBUI_NAME: 'Omnizen',
     WEBUI_URL: 'https://omnizen.ai',
-    // Single-user desktop: skip OpenWebUI's built-in login form
-    // entirely. Without this, OpenWebUI defaults to multi-user auth
-    // (ENABLE_SIGNUP=false in modern releases), which strands the user
-    // at a login page with no way to create an account. The Omnizen
-    // sign-in we do in the wrapper IS the auth boundary for the chat;
-    // adding a second local-only OpenWebUI account on top is pure
-    // friction.
-    WEBUI_AUTH: 'False',
+    // OpenWebUI 0.9.5's WEBUI_AUTH=False mode is half-broken: the
+    // config reports auth:false but /openai/models still returns 401
+    // "Not authenticated" because the auto-login that's supposed to
+    // create + JWT-bind the default user never completes inside the
+    // webview's storage partition. Result: chat shows zero models.
+    //
+    // Instead, leave the default auth on (WEBUI_AUTH unset / true) and
+    // enable signup so the user can create the local admin account
+    // once on first launch. The Omnizen sign-in is still THE auth that
+    // matters for billing/routing - this local OpenWebUI account is
+    // just whatever email+password the user picks and never leaves
+    // their machine. It's one extra screen on first run, but it
+    // actually works.
+    ENABLE_SIGNUP: 'True',
     // Route chat completions through api.omnizen.ai when the user has
     // signed in. Without creds we spawn the upstream defaults and the
     // renderer's persistent banner prompts the user to sign in.
