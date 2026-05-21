@@ -71,18 +71,29 @@ linux:
     - deb
   maintainer: omnizen.ai
   vendor: Anchorblock Venture Capital
-  synopsis: Native chat app routing every frontier model through your Omnizen plan
-  description: |
-    Omnizen Desktop is a fork of Open WebUI Desktop, pre-wired to your Omnizen
-    subscription. Chat history and uploaded files stay on your machine; every
-    chat completion routes through api.omnizen.ai so one key powers every
-    frontier model.
+  synopsis: Chat with every frontier model on one Omnizen plan
+  # NOTE: don't set linux.description as a YAML multi-line scalar - it
+  # leaks into the auto-generated .desktop Comment field as multiple
+  # lines, which makes the .desktop file invalid per the XDG spec.
+  # Symptom: `update-desktop-database` errors out, GNOME never indexes
+  # the app, no icon appears in Activities. The explicit
+  # `desktop.entry.Comment` below is what users actually see in tooltips.
   category: Network
-  extraResources:
-    # AppStream metainfo so GNOME Software / KDE Discover render
-    # name + license + description for the installed package.
-    - from: build/com.omnizen.desktop.metainfo.xml
-      to: ../share/metainfo/com.omnizen.desktop.metainfo.xml
+  # Point icon at a directory of NxN.png files so electron-builder
+  # installs all sizes (16, 24, 32, 48, 64, 128, 256, 512, 1024) into
+  # /usr/share/icons/hicolor/<size>/apps/<name>.png. With only the
+  # 1024x1024 source, menu icons fail to render at small sizes.
+  icon: build/icons
+  desktop:
+    entry:
+      Name: Omnizen
+      GenericName: AI Chat Client
+      Comment: Chat with every frontier model on one Omnizen plan
+      Categories: Network;Chat;Utility;
+      Keywords: ai;chat;llm;openwebui;omnizen;
+      StartupWMClass: Omnizen
+      Terminal: false
+      Type: Application
 deb:
   artifactName: ${name}_${arch}.${ext}
 snap:
