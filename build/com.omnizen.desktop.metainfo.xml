@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AppStream metainfo for Omnizen Desktop.
+
+  Read by GNOME Software, KDE Discover, and other Linux app stores to
+  show name, license, description, screenshots, and bug-tracker links.
+  Without this file the .deb / .rpm / .AppImage shows up as "Unknown
+  license" with no description.
+
+  Installed inside the .deb at /usr/share/metainfo/com.omnizen.desktop.metainfo.xml
+  via electron-builder.yml's linux.extraResources block.
+
+  Spec: https://www.freedesktop.org/software/appstream/docs/sect-Metadata-Application.html
+-->
+<component type="desktop-application">
+  <id>com.omnizen.desktop</id>
+  <launchable type="desktop-id">com.omnizen.desktop.desktop</launchable>
+
+  <name>Omnizen</name>
+  <summary>Native chat app routing every frontier model through your Omnizen plan</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+
+  <developer id="ai.omnizen">
+    <name>Anchorblock Venture Capital</name>
+  </developer>
+
+  <description>
+    <p>
+      Omnizen Desktop is a fork of Open WebUI Desktop, pre-wired to your
+      Omnizen subscription. Chat history and uploaded files stay on your
+      machine; every chat completion routes through api.omnizen.ai so
+      one key powers every frontier model.
+    </p>
+    <p>Highlights:</p>
+    <ul>
+      <li>One sign-in, every frontier model — OpenAI, Anthropic, Gemini, DeepSeek and more, on your single Omnizen plan.</li>
+      <li>Local data — chat history and uploads stay on your computer, not on a hosted multi-tenant database.</li>
+      <li>System-wide Spotlight + voice input.</li>
+      <li>Auto-updates from the Omnizen release feed.</li>
+    </ul>
+    <p>
+      Early alpha. Builds are unsigned for now; macOS Gatekeeper and
+      Windows SmartScreen will warn on first launch. See the README for
+      bypass instructions.
+    </p>
+  </description>
+
+  <categories>
+    <category>Network</category>
+    <category>Chat</category>
+    <category>Utility</category>
+  </categories>
+
+  <keywords>
+    <keyword>chat</keyword>
+    <keyword>ai</keyword>
+    <keyword>llm</keyword>
+    <keyword>openai</keyword>
+    <keyword>claude</keyword>
+    <keyword>omnizen</keyword>
+    <keyword>openwebui</keyword>
+  </keywords>
+
+  <url type="homepage">https://omnizen.ai</url>
+  <url type="bugtracker">https://github.com/anchorblock/desktop/issues</url>
+  <url type="help">https://omnizen.ai/docs</url>
+  <url type="vcs-browser">https://github.com/anchorblock/desktop</url>
+  <url type="contribute">https://github.com/anchorblock/desktop/blob/main/CONTRIBUTING.md</url>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+
+  <recommends>
+    <display_length compare="ge">medium</display_length>
+    <internet>always</internet>
+  </recommends>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="0.0.22" date="2026-05-21">
+      <description>
+        <p>Adds AppStream metainfo so GNOME Software and KDE Discover display name, license, and description correctly. Also rolls up macOS / Windows installer metadata.</p>
+      </description>
+    </release>
+    <release version="0.0.21" date="2026-05-21">
+      <description>
+        <p>First full-matrix alpha — Linux ARM64 builds now ship alongside x64. Drops phantomjs-prebuilt transitive dependency that was blocking npm ci on arm64 runners.</p>
+      </description>
+    </release>
+    <release version="0.0.20" date="2026-05-21">
+      <description>
+        <p>Initial alpha. Persistent Omnizen sign-in banner above the chat webview, dev-mode DevTools docked, Wayland shortcut-failure toasts silenced, V8 Turbofan renderer crash mitigated.</p>
+      </description>
+    </release>
+  </releases>
+</component>
