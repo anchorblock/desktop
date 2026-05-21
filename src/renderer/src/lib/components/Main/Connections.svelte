@@ -126,7 +126,7 @@
         throw new Error('Server did not become reachable. Please try again.')
       }
 
-      // Now connect — the server is ready
+      // Now connect - the server is ready
       installStatus = ''
       connect('local')
       installPhase = 'idle'
@@ -188,7 +188,7 @@
     }
     // Persist as default so spotlight/startup always use the last-selected connection
     window.electronAPI.setDefaultConnection(id)
-    // Already-open connection — just switch to it
+    // Already-open connection - just switch to it
     if (openConnections.has(id)) {
       connectingId = ''
       activeConnectionId = id
@@ -200,7 +200,7 @@
     activeConnectionId = id
 
     if (id === 'local') {
-      // Local needs server start — use IPC (no renderer-side conn needed)
+      // Local needs server start - use IPC (no renderer-side conn needed)
       connectingId = id
       view = 'welcome'
       window.electronAPI.connectTo(id).then((result: any) => {
@@ -224,7 +224,7 @@
     } else {
       const conn = ($connections ?? []).find((c) => c.id === id)
       if (!conn) return
-      // Remote — open immediately, no IPC needed
+      // Remote - open immediately, no IPC needed
       connectingId = ''
       openConnections.set(id, conn.url)
       openConnections = new Map(openConnections)
@@ -260,7 +260,7 @@
     }
   })
 
-  // React to showingLogs from parent — open the server log panel
+  // React to showingLogs from parent - open the server log panel
   // Only react when parent sets showingLogs to true; don't close on false
   // (the status bar manages its own open/close via activeLog)
   $effect(() => {
@@ -334,10 +334,10 @@
 
     for (const wv of webviews) {
       try {
-        // Attempt to send — throws if webview hasn't fired dom-ready yet
+        // Attempt to send - throws if webview hasn't fired dom-ready yet
         wv.send('desktop:event', event)
       } catch {
-        // Webview not ready — queue delivery until dom-ready
+        // Webview not ready - queue delivery until dom-ready
         const onReady = () => {
           wv.removeEventListener('dom-ready', onReady)
           try { wv.send('desktop:event', event) } catch (_) {}
@@ -385,7 +385,7 @@
         activeConnectionId = connId
         if (installPhase !== 'working') view = 'connected'
 
-        // Targeted delivery — wait a frame for the webview DOM to exist
+        // Targeted delivery - wait a frame for the webview DOM to exist
         requestAnimationFrame(() => {
           sendToWebview({ type: 'query', data: { query, files } }, connId)
         })
@@ -407,7 +407,7 @@
         activeConnectionId = connId
         if (installPhase !== 'working') view = 'connected'
 
-        // Targeted delivery — wait a frame for the webview DOM to exist
+        // Targeted delivery - wait a frame for the webview DOM to exist
         requestAnimationFrame(() => {
           sendToWebview({ type: 'call' }, connId)
         })
@@ -563,11 +563,11 @@
     onSelectLog={selectLog}
     onStartServer={async () => {
       if (!localInstalled) {
-        // Not installed — trigger full install (handles Python/uv + package)
+        // Not installed - trigger full install (handles Python/uv + package)
         startInstall()
         return
       }
-      // Already installed — start the server
+      // Already installed - start the server
       await window.electronAPI.startServer()
       // Force-refresh serverInfo immediately (don't wait for 3s poll)
       const info = await window.electronAPI.getServerInfo()

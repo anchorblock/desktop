@@ -78,7 +78,7 @@
   "setup.connectionManager.failed": "Fehlgeschlagen",
   "main.openWebUI": "Open WebUI",
   "main.selectConnection": "Wählen Sie eine Verbindung, um zu beginnen",
-  "main.heroDescription": "Melden Sie sich bei Omnizen an — oder verbinden Sie sich mit einem Open WebUI Server.",
+  "main.heroDescription": "Melden Sie sich bei Omnizen an - oder verbinden Sie sich mit einem Open WebUI Server.",
   "main.getStarted": "Loslegen",
   "main.getStarted.title": "Umgebung einrichten",
   "main.getStarted.description": "Wählen Sie optionale Dienste zur Installation neben Open WebUI.",
@@ -196,7 +196,7 @@
   "settings.about.upToDate": "Sie verwenden die neueste Version",
   "settings.about.versionAvailable": "Version {{version}} ist verfügbar",
   "settings.about.downloadingPercent": "Lade herunter… {{percent}}%",
-  "settings.about.updateReady": "Update bereit — Neustart zum Anwenden",
+  "settings.about.updateReady": "Update bereit - Neustart zum Anwenden",
   "settings.about.checkForUpdates": "Nach Updates suchen",
   "settings.about.checking": "Prüfe…",
   "settings.about.downloadUpdate": "Update herunterladen",
@@ -205,5 +205,6 @@
   "settings.about.noChangelog": "Noch keine Änderungseinträge.",
   "settings.about.viewOnGithub": "Auf GitHub ansehen →",
   "settings.about.copyright": "Copyright (c) 2026 Open WebUI Inc. All rights reserved.",
-  "settings.about.createdBy": "Created by Timothy J. Baek"
+  "settings.about.createdBy": "Created by Timothy J. Baek",
+  "main.welcomeSubtitle": "Melden Sie sich bei Omnizen an, um mit allen Top-Modellen zu chatten."
 }

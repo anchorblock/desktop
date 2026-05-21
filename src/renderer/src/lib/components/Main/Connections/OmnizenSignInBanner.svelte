@@ -6,7 +6,7 @@
   // is the whole point of this fork.
   //
   // Auto-hides once the user is signed in. Cannot be permanently
-  // dismissed — the desktop is built around Omnizen routing, so missing
+  // dismissed - the desktop is built around Omnizen routing, so missing
   // creds is a state we want visible until resolved.
 
   import { onMount, onDestroy } from 'svelte'
@@ -122,7 +122,7 @@
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
       </svg>
-      <span>Signed in to Omnizen — frontier models routed via api.omnizen.ai</span>
+      <span>Signed in to Omnizen - frontier models routed via api.omnizen.ai</span>
     </div>
     <button
       class="shrink-0 text-[11px] opacity-60 hover:opacity-100 underline bg-transparent border-none p-0 text-current cursor-pointer"

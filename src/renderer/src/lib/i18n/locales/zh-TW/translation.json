@@ -196,7 +196,7 @@
   "settings.about.upToDate": "您已是最新版本",
   "settings.about.versionAvailable": "版本 {{version}} 可供更新",
   "settings.about.downloadingPercent": "下載中… {{percent}}%",
-  "settings.about.updateReady": "更新就緒 — 重新啟動以套用",
+  "settings.about.updateReady": "更新就緒 - 重新啟動以套用",
   "settings.about.checkForUpdates": "檢查更新",
   "settings.about.checking": "檢查中…",
   "settings.about.downloadUpdate": "下載更新",
@@ -205,5 +205,6 @@
   "settings.about.noChangelog": "暫無更新紀錄。",
   "settings.about.viewOnGithub": "在 GitHub 上檢視 →",
   "settings.about.copyright": "版權所有 (c) 2026 Open WebUI Inc. 保留所有權利。",
-  "settings.about.createdBy": "由 Timothy J. Baek 建立"
+  "settings.about.createdBy": "由 Timothy J. Baek 建立",
+  "main.welcomeSubtitle": "登入 Omnizen 即可與所有前沿模型聊天。"
 }

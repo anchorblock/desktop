@@ -31,7 +31,7 @@ function have(cmd) {
 
 function renderSvgTo1024() {
   if (!existsSync(SVG)) {
-    console.error(`No SVG master at ${SVG} — set OMNIZEN_ICON_SVG or check out the design-system repo next to this one`)
+    console.error(`No SVG master at ${SVG} - set OMNIZEN_ICON_SVG or check out the design-system repo next to this one`)
     process.exit(1)
   }
   if (have('rsvg-convert')) {

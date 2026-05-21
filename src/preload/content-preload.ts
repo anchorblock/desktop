@@ -4,7 +4,7 @@ import { ipcRenderer, contextBridge } from 'electron'
 // This preload is a dumb relay. It passes typed {type, data}
 // messages between the embedder (desktop renderer) and the
 // Open WebUI page. Business logic lives elsewhere.
-// To add new features, just add new event types — this file
+// To add new features, just add new event types - this file
 // never needs to change.
 
 type EventCallback = (data: any) => void

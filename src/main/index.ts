@@ -107,7 +107,7 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('use-gl', 'angle')
   app.commandLine.appendSwitch('use-angle', 'swiftshader')
 
-  // Disable the GPU sandbox — the sandbox setup triggers shared-memory
+  // Disable the GPU sandbox - the sandbox setup triggers shared-memory
   // allocation failures in /dev/shm.  The browser process is already
   // un-sandboxed (--no-sandbox above).
   app.commandLine.appendSwitch('disable-gpu-sandbox')
@@ -177,7 +177,7 @@ function isGlobalShortcutSupported(): boolean {
  * On Wayland sessions, individual shortcut grabs frequently fail (the
  * compositor or other apps may already own the chord; portal support
  * varies across desktop environments). Failures still get logged, but
- * we suppress the user-facing toast — getting four "could not register"
+ * we suppress the user-facing toast - getting four "could not register"
  * notifications on every launch is a worse experience than missing
  * shortcuts.
  */
@@ -226,10 +226,10 @@ function tryRegisterShortcut(
 const registerShortcuts = (globalAccel?: string, spotlightAccel?: string, voiceInputAccel?: string, callAccel?: string): void => {
   globalShortcut.unregisterAll()
 
-  // On Wayland / Flatpak global shortcuts are unsupported — skip silently.
+  // On Wayland / Flatpak global shortcuts are unsupported - skip silently.
   if (!isGlobalShortcutSupported()) {
     log.info(
-      'Global shortcut registration skipped — unsupported environment ' +
+      'Global shortcut registration skipped - unsupported environment ' +
       `(XDG_SESSION_TYPE=${process.env['XDG_SESSION_TYPE'] ?? '(unset)'}, ` +
       `FLATPAK_ID=${process.env['FLATPAK_ID'] ?? '(unset)'})`
     )
@@ -264,7 +264,7 @@ const registerShortcuts = (globalAccel?: string, spotlightAccel?: string, voiceI
       toggleVoiceInput()
     })
   } else {
-    log.info(`Voice input shortcut skipped — accel="${voiceInputAccel}", enabled=${CONFIG?.voiceInputEnabled}`)
+    log.info(`Voice input shortcut skipped - accel="${voiceInputAccel}", enabled=${CONFIG?.voiceInputEnabled}`)
   }
 
   // Call shortcut – open the voice/video call overlay
@@ -273,7 +273,7 @@ const registerShortcuts = (globalAccel?: string, spotlightAccel?: string, voiceI
       toggleCall()
     })
   } else {
-    log.info(`Call shortcut skipped — accel="${callAccel}", enabled=${CONFIG?.callEnabled}`)
+    log.info(`Call shortcut skipped - accel="${callAccel}", enabled=${CONFIG?.callEnabled}`)
   }
 }
 
@@ -323,7 +323,7 @@ function createSpotlightWindow(): BrowserWindow {
     spotlightWindow.loadFile(join(__dirname, '../renderer/spotlight.html'))
   }
 
-  // Hide on blur — but only when the window was truly visible and settled.
+  // Hide on blur - but only when the window was truly visible and settled.
   let blurArmed = false
   spotlightWindow.on('focus', () => {
     blurArmed = false
@@ -345,7 +345,7 @@ function createSpotlightWindow(): BrowserWindow {
 }
 
 function showAndFocusSpotlight(win: BrowserWindow, initialQuery?: string): void {
-  // On macOS, avoid `app.focus({ steal: true })` — it activates the whole
+  // On macOS, avoid `app.focus({ steal: true })` - it activates the whole
   // application and causes the window manager to switch back to whichever
   // Space the app was originally launched on (#179).  Instead, ensure the
   // window is visible on all workspaces and focus it directly.
@@ -480,7 +480,7 @@ function playChime(ascending: boolean): Promise<void> {
 
 async function toggleVoiceInput(): Promise<void> {
   if (voiceInputRecording) {
-    // Stop recording — chime plays in done/close handler after mic is released
+    // Stop recording - chime plays in done/close handler after mic is released
     voiceInputRecording = false
     if (voiceInputWindow && !voiceInputWindow.isDestroyed()) {
       voiceInputWindow.webContents.send('voiceInput:state', { recording: false })
@@ -519,7 +519,7 @@ async function toggleVoiceInput(): Promise<void> {
     log.warn('Voice input: config check failed:', err)
   }
 
-  // Start recording — chime plays concurrently (separate audio output path from mic input)
+  // Start recording - chime plays concurrently (separate audio output path from mic input)
   voiceInputRecording = true
   playChime(true)
 
@@ -856,7 +856,7 @@ const updateTray = () => {
 // ─── Connection Management ──────────────────────────────
 
 // Build a virtual local connection object from current config.
-// The local server is never stored in the connections array — it's
+// The local server is never stored in the connections array - it's
 // implicit when the open-webui package is installed.
 const buildLocalConnection = (): Connection => {
   const port = CONFIG?.localServer?.port ?? 8080
@@ -925,7 +925,7 @@ const connectTo = async (connection: Connection) => {
 
 // ─── Server Lifecycle ───────────────────────────────────
 
-// Active PTY data listener — when a MessagePort is connected, PTY data
+// Active PTY data listener - when a MessagePort is connected, PTY data
 // flows to the port. This disposable gets replaced on each pty:connect.
 let activePtyDataDisposable: { dispose: () => void } | null = null
 
@@ -955,7 +955,7 @@ const startServerHandler = async (): Promise<boolean> => {
         sendToRenderer('status:install', '')
         log.info('[server] Auto-update complete')
       } catch (e) {
-        // Non-fatal — start the existing version if upgrade fails
+        // Non-fatal - start the existing version if upgrade fails
         log.warn('[server] Auto-update failed, starting existing version:', e)
         sendToRenderer('status:install', '')
       }
@@ -992,12 +992,12 @@ const startServerHandler = async (): Promise<boolean> => {
   }
 }
 
-// Active PTY data listeners — one per PID, replaced on each pty:connect for that PID
+// Active PTY data listeners - one per PID, replaced on each pty:connect for that PID
 const activePtyDisposables: Map<number, { dispose: () => void }> = new Map()
 
 /**
  * Creates a MessagePort-based channel between a PTY process and the renderer.
- * Supports multiple concurrent PTYs — each identified by PID.
+ * Supports multiple concurrent PTYs - each identified by PID.
  *
  * Flow:
  *   PTY stdout → port1.postMessage → [transfer] → port2 (renderer) → xterm.write
@@ -1011,9 +1011,9 @@ const connectPtyPort = (pid?: number): void => {
 
   if (!targetPid) {
     if (SERVER_STATUS === 'starting') {
-      log.info('pty:connect — server is starting, no PID yet')
+      log.info('pty:connect - server is starting, no PID yet')
     } else {
-      log.info('pty:connect — no active server')
+      log.info('pty:connect - no active server')
       port1.postMessage({ type: 'output', data: '[No active server process]\r\n' })
     }
     mainWindow.webContents.postMessage('pty:port', { pid: 0 }, [port2])
@@ -1025,7 +1025,7 @@ const connectPtyPort = (pid?: number): void => {
   activePtyDisposables.delete(targetPid)
 
   const ptyProcess = getServerPty(targetPid)
-  log.info(`pty:connect — PID ${targetPid}, pty exists: ${!!ptyProcess}`)
+  log.info(`pty:connect - PID ${targetPid}, pty exists: ${!!ptyProcess}`)
 
   // Replay buffered output so renderer sees full history
   const buffer = getServerLog(targetPid)
@@ -1059,7 +1059,7 @@ const connectPtyPort = (pid?: number): void => {
 }
 
 /**
- * MessagePort channel for the Open Terminal PTY — read-only log viewer.
+ * MessagePort channel for the Open Terminal PTY - read-only log viewer.
  */
 let activeOpenTerminalDisposable: { dispose: () => void } | null = null
 
@@ -1222,7 +1222,7 @@ if (!gotTheLock) {
     // Allow connections to Open WebUI instances that use self-signed or
     // otherwise untrusted SSL certificates (issue #108). The user
     // explicitly configures the server URL, so trusting all certs is
-    // acceptable — this matches the behaviour of VS Code, Postman, and
+    // acceptable - this matches the behaviour of VS Code, Postman, and
     // other Electron apps used in enterprise/self-hosted environments.
     app.on('certificate-error', (event, _webContents, url, error, certificate, callback) => {
       log.warn(
@@ -1269,7 +1269,7 @@ if (!gotTheLock) {
       })
     })
 
-    // Log webview guest renderer crashes for diagnostics — the existing
+    // Log webview guest renderer crashes for diagnostics - the existing
     // 'crashed' listener in Content.svelte surfaces these to the user.
     //
     // For webview guests we also intercept navigation and popup events
@@ -1304,7 +1304,7 @@ if (!gotTheLock) {
               openUrl(url)
             }
           } catch {
-            // Malformed URL — let it through so Chromium can handle/reject it
+            // Malformed URL - let it through so Chromium can handle/reject it
           }
         })
 
@@ -1488,7 +1488,7 @@ if (!gotTheLock) {
       reachable: SERVER_REACHABLE
     }))
 
-    // Connections (remote only — local is virtual)
+    // Connections (remote only - local is virtual)
     ipcMain.handle('connections:list', async () => {
       const config = await getConfig()
       return config.connections
@@ -1542,7 +1542,7 @@ if (!gotTheLock) {
     })
 
     ipcMain.handle('connections:connect', async (_event, id: string) => {
-      // 'local' is a virtual connection — synthesize it
+      // 'local' is a virtual connection - synthesize it
       if (id === 'local') {
         return await connectTo(buildLocalConnection())
       }
@@ -1558,7 +1558,7 @@ if (!gotTheLock) {
       return await validateRemoteUrl(url)
     })
 
-    // Omnizen — device-flow sign-in + creds. Restart the local server
+    // Omnizen - device-flow sign-in + creds. Restart the local server
     // after a successful login so the bundled Open WebUI picks up the
     // injected OPENAI_* env on the next boot.
     ipcMain.handle('omnizen:status', async () => ({ signedIn: await isSignedIn() }))
@@ -1659,7 +1659,7 @@ if (!gotTheLock) {
           if (process.platform === 'darwin') {
             const status = systemPreferences.getMediaAccessStatus('screen')
             if (status !== 'granted') {
-              log.warn(`spotlight:captureRegion — screen recording permission: ${status}`)
+              log.warn(`spotlight:captureRegion - screen recording permission: ${status}`)
               new Notification({
                 title: 'Screen Recording Permission Required',
                 body: 'Open WebUI needs Screen Recording access to capture screenshots. Please enable it in System Settings → Privacy & Security → Screen Recording, then restart the app.'
@@ -1672,7 +1672,7 @@ if (!gotTheLock) {
             }
           }
 
-          // Make spotlight invisible (but don't hide it — hiding triggers macOS
+          // Make spotlight invisible (but don't hide it - hiding triggers macOS
           // window activation which brings up the main window behind it)
           spotlightWindow?.setOpacity(0)
           // Small delay to let the window fully disappear before capture
@@ -1702,7 +1702,7 @@ if (!gotTheLock) {
           const fullImage = source.thumbnail
           // Validate thumbnail is not empty (can happen without permission)
           if (fullImage.isEmpty()) {
-            log.warn('spotlight:captureRegion — captured thumbnail is empty (likely no permission)')
+            log.warn('spotlight:captureRegion - captured thumbnail is empty (likely no permission)')
             spotlightWindow?.setOpacity(1)
             return null
           }
@@ -1772,7 +1772,7 @@ if (!gotTheLock) {
               }
             }
           } catch {
-            log.warn('voiceInput:transcribe — could not extract token from webviews')
+            log.warn('voiceInput:transcribe - could not extract token from webviews')
           }
         }
 
@@ -1824,7 +1824,7 @@ if (!gotTheLock) {
       }
     })
 
-    // Voice input completed — deliver text to chat
+    // Voice input completed - deliver text to chat
     ipcMain.handle('voiceInput:done', async (_event, text: string) => {
       voiceInputRecording = false
       playChime(false)

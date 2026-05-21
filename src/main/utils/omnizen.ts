@@ -105,7 +105,7 @@ export async function deviceLogin(
     await sleep(pollMs)
     const r = await postJson('/api/cli/auth/poll', { device_code })
     if (r.status === 429) {
-      // slow_down per RFC 8628 — back off and keep polling.
+      // slow_down per RFC 8628 - back off and keep polling.
       pollMs = Math.max(pollMs, SLOW_DOWN_MS)
       continue
     }

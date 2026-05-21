@@ -196,7 +196,7 @@
   "settings.about.upToDate": "최신 버전입니다",
   "settings.about.versionAvailable": "버전 {{version}}을 사용할 수 있습니다",
   "settings.about.downloadingPercent": "다운로드 중… {{percent}}%",
-  "settings.about.updateReady": "업데이트 준비 완료 — 재시작하여 적용",
+  "settings.about.updateReady": "업데이트 준비 완료 - 재시작하여 적용",
   "settings.about.checkForUpdates": "업데이트 확인",
   "settings.about.checking": "확인 중…",
   "settings.about.downloadUpdate": "업데이트 다운로드",
@@ -205,5 +205,6 @@
   "settings.about.noChangelog": "아직 변경 기록이 없습니다.",
   "settings.about.viewOnGithub": "GitHub에서 보기 →",
   "settings.about.copyright": "Copyright (c) 2026 Open WebUI Inc. All rights reserved.",
-  "settings.about.createdBy": "Created by Timothy J. Baek"
+  "settings.about.createdBy": "Created by Timothy J. Baek",
+  "main.welcomeSubtitle": "Omnizen에 로그인하여 모든 프론티어 모델과 대화하세요."
 }

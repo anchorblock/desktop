@@ -20,7 +20,7 @@ win:
   executableName: omnizen
   legalTrademarks: © 2026 Anchorblock Venture Capital
   # publisherName lives under signtoolOptions in electron-builder 26.x but
-  # only matters when we actually sign — skipping until we have a cert.
+  # only matters when we actually sign - skipping until we have a cert.
 nsis:
   artifactName: ${name}-${arch}-setup.${ext}
   shortcutName: ${productName}
@@ -45,7 +45,7 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
     - NSHumanReadableCopyright: © 2026 Anchorblock Venture Capital. AGPL-3.0-or-later.
-    - CFBundleGetInfoString: Omnizen Desktop — every frontier model on one plan.
+    - CFBundleGetInfoString: Omnizen Desktop - every frontier model on one plan.
     - NSSupportsAutomaticGraphicsSwitching: true
 dmg:
   artifactName: ${name}-${arch}.${ext}
