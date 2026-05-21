@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.31" date="2026-05-21">
+      <description>
+        <p>Silent OpenWebUI sign-in. The desktop now bootstraps a hidden local admin on first launch, persists the credentials in safeStorage, and injects the session JWT into the webview's localStorage via the preload script before any OpenWebUI page script runs. Users never see OpenWebUI's login or signup form - the Omnizen device-flow they completed in their browser is the only sign-in. Reverts the v0.0.30 ENABLE_SIGNUP workaround.</p>
+      </description>
+    </release>
     <release version="0.0.30" date="2026-05-21">
       <description>
         <p>OpenWebUI 0.9.5's WEBUI_AUTH=False mode is half-broken (config reports auth disabled but /openai/models still 401s "Not authenticated" because the auto-login never completes inside the webview storage partition). Reverts to default auth + sets ENABLE_SIGNUP=true so the user can create the local admin once on first launch. Two-step on first run (Omnizen sign-in + local OpenWebUI signup) but it actually loads the model list afterwards.</p>

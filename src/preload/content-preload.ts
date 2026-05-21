@@ -1,5 +1,26 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
+// ─── Silent OpenWebUI sign-in via injected session JWT ──
+// Runs BEFORE any OpenWebUI page script. Synchronously asks the main
+// process for the cached session token (bootstrapped silently after
+// the local server is up - see src/main/utils/openwebui-auth.ts) and
+// drops it into localStorage so OpenWebUI's Svelte frontend sees an
+// already-authenticated user on its first auth check.
+//
+// The user never sees OpenWebUI's login or signup form - the Omnizen
+// device-flow they completed in the browser is the only sign-in.
+try {
+  const token: string | null = ipcRenderer.sendSync('openwebui:token-sync')
+  if (token && typeof window !== 'undefined' && window.localStorage) {
+    if (window.localStorage.getItem('token') !== token) {
+      window.localStorage.setItem('token', token)
+    }
+  }
+} catch {
+  // If sync IPC fails for any reason fall back to OpenWebUI's own
+  // login screen - bootstrap is best-effort.
+}
+
 // ─── Desktop ↔ Open WebUI Generic Protocol ──────────────
 // This preload is a dumb relay. It passes typed {type, data}
 // messages between the embedder (desktop renderer) and the

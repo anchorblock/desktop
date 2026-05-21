@@ -62,6 +62,13 @@ import {
 import { initUpdater, checkForUpdates, downloadUpdate, installUpdate } from './updater'
 
 import { deviceLogin, readCreds, clearCreds, isSignedIn } from './utils/omnizen'
+import { getOrCreateOpenWebUIToken, clearOpenWebUIBootstrap } from './utils/openwebui-auth'
+
+// Latest OpenWebUI session JWT for the silent admin we bootstrap on
+// behalf of the user. Served synchronously to the webview's preload
+// via ipcMain.on('openwebui:token-sync') so localStorage gets the
+// token BEFORE OpenWebUI's first auth check runs.
+let openWebUIToken: string | null = null
 
 import log from 'electron-log'
 log.transports.file.resolvePathFn = () => getLogFilePath('main')
@@ -977,6 +984,18 @@ const startServerHandler = async (): Promise<boolean> => {
 
     checkUrlAndOpen(SERVER_URL, async () => {
       SERVER_REACHABLE = true
+      // Silently bootstrap the OpenWebUI admin + cache the JWT so the
+      // webview's preload can inject it into localStorage before any
+      // OpenWebUI script runs. Failure leaves openWebUIToken null and
+      // the user falls through to OpenWebUI's own auth screens.
+      try {
+        openWebUIToken = await getOrCreateOpenWebUIToken(SERVER_URL)
+        if (!openWebUIToken) {
+          log.warn('[openwebui-auth] bootstrap returned no token')
+        }
+      } catch (err) {
+        log.warn('[openwebui-auth] bootstrap failed', err)
+      }
       sendToRenderer('server:ready', { url: SERVER_URL })
       updateTray()
     })
@@ -1576,6 +1595,12 @@ if (!gotTheLock) {
     })
     ipcMain.handle('omnizen:logout', async () => {
       await clearCreds()
+      // Drop the OpenWebUI bootstrap too so the next sign-in starts
+      // from a clean local-admin slate, matching the cleared Omnizen
+      // creds. The bootstrap will be silently recreated on next
+      // server start.
+      await clearOpenWebUIBootstrap()
+      openWebUIToken = null
       try {
         await stopServerHandler()
         await startServerHandler()
@@ -1583,6 +1608,15 @@ if (!gotTheLock) {
         log.warn('omnizen: post-logout server restart failed', err)
       }
       return { signedIn: false }
+    })
+
+    // Synchronous IPC for the webview's content-preload to read the
+    // OpenWebUI session JWT BEFORE any OpenWebUI page script runs. Sync
+    // here is the difference between localStorage being primed in time
+    // (no login flicker) vs. a race where OpenWebUI's Svelte frontend
+    // hits its auth check first and redirects to /auth.
+    ipcMain.on('openwebui:token-sync', (event) => {
+      event.returnValue = openWebUIToken
     })
 
     // Updater
