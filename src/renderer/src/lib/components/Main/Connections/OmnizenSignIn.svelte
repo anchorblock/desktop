@@ -28,6 +28,11 @@
     try {
       await api()?.omnizenLogin()
       status = 'signed-in'
+      // Notify Connections.svelte to transition from welcome view to
+      // the connected chat view. Without this the welcome view stays
+      // up but the OmnizenSignIn card has collapsed -> empty white
+      // screen.
+      window.dispatchEvent(new CustomEvent('omnizen:signed-in'))
     } catch (err) {
       errorMsg = err instanceof Error ? err.message : String(err)
       status = 'error'
