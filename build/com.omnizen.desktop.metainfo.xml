@@ -83,9 +83,9 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.0.22" date="2026-05-21">
+    <release version="0.0.23" date="2026-05-21">
       <description>
-        <p>Adds AppStream metainfo so GNOME Software and KDE Discover display name, license, and description correctly. Also rolls up macOS / Windows installer metadata.</p>
+        <p>Fixes the v0.0.22 build pipeline (an invalid electron-builder config field blocked all platforms). Adds AppStream metainfo so GNOME Software / KDE Discover render the package metadata correctly, plus macOS Info.plist + Windows installer metadata.</p>
       </description>
     </release>
     <release version="0.0.21" date="2026-05-21">
