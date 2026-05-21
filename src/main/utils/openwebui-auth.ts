@@ -104,7 +104,13 @@ export async function getOrCreateOpenWebUIToken(serverUrl: string): Promise<stri
 
   // First-run path (or post-wipe). The first user OpenWebUI sees
   // becomes admin even if ENABLE_SIGNUP=false.
-  const email = bs?.email ?? `omnizen-desktop@local`
+  //
+  // Email must be RFC-valid - OpenWebUI 0.9.5's signup validates with
+  // pydantic EmailStr, which rejects fake TLDs like `.local`. We use
+  // example.com (RFC 2606 reserved for documentation/testing) so the
+  // address looks intentional, never collides with any real omnizen.ai
+  // user, and is never deliverable.
+  const email = bs?.email ?? `omnizen-desktop@example.com`
   const password = bs?.password ?? crypto.randomBytes(24).toString('base64url')
   const name = 'Omnizen Desktop'
 
