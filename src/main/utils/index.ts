@@ -576,20 +576,20 @@ export const startServer = async (
     // inside the Omnizen Desktop shell.
     WEBUI_NAME: 'Omnizen',
     WEBUI_URL: 'https://omnizen.ai',
-    // OpenWebUI 0.9.5's WEBUI_AUTH=False mode is half-broken: the
-    // config reports auth:false but /openai/models still returns 401
-    // "Not authenticated" because the auto-login that's supposed to
-    // create + JWT-bind the default user never completes inside the
-    // webview's storage partition. Result: chat shows zero models.
+    // OpenWebUI 0.9.5 still requires a local user account even when
+    // WEBUI_AUTH=False (the auto-login that's supposed to create one
+    // doesn't fire reliably inside our webview storage partition).
+    // Rather than asking users to type a second email+password into
+    // OpenWebUI's signup form after they already authed with Omnizen
+    // (Google via Clerk), we silently bootstrap a hidden local admin
+    // in the main process - see src/main/utils/openwebui-auth.ts and
+    // src/preload/content-preload.ts for the JWT injection.
     //
-    // Instead, leave the default auth on (WEBUI_AUTH unset / true) and
-    // enable signup so the user can create the local admin account
-    // once on first launch. The Omnizen sign-in is still THE auth that
-    // matters for billing/routing - this local OpenWebUI account is
-    // just whatever email+password the user picks and never leaves
-    // their machine. It's one extra screen on first run, but it
-    // actually works.
-    ENABLE_SIGNUP: 'True',
+    // We don't set ENABLE_SIGNUP. The bootstrap relies on OpenWebUI's
+    // first-user-becomes-admin path which fires regardless of
+    // ENABLE_SIGNUP. Keeping ENABLE_SIGNUP at the default (false)
+    // means nothing else can sign up against the local server even
+    // if someone discovers the port.
     // Route chat completions through api.omnizen.ai when the user has
     // signed in. Without creds we spawn the upstream defaults and the
     // renderer's persistent banner prompts the user to sign in.
