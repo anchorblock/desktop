@@ -348,7 +348,20 @@
   }
 
   // Listen for events from main process
+  // After Omnizen sign-in completes, the OmnizenSignIn card collapses
+  // leaving the welcome view empty (because OmnizenSignIn is the only
+  // CTA there). Force the transition to the local connection so the
+  // chat webview becomes visible immediately. The card + banner both
+  // dispatch 'omnizen:signed-in' on success.
+  const handleOmnizenSignedIn = () => {
+    if (view !== 'connected' && localInstalled) {
+      connect('local')
+    }
+  }
+
   onMount(() => {
+    window.addEventListener('omnizen:signed-in', handleOmnizenSignedIn)
+
     window.electronAPI.onData((data: any) => {
       // ── Connection opened (startup, tray click) ───────
       if (data.type === 'connection:open' && data.data?.url) {
@@ -458,6 +471,9 @@
       localInstalled = v !== null
     })
 
+    return () => {
+      window.removeEventListener('omnizen:signed-in', handleOmnizenSignedIn)
+    }
   })
 
   const toggleOpenTerminal = async () => {

@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.33" date="2026-05-21">
+      <description>
+        <p>Fix the post-sign-in blank screen. The welcome view's OmnizenSignIn card collapses when sign-in completes, leaving an empty welcome background visible because view-state never transitioned to 'connected'. Backend was fully working - chat was loaded, models populated - just not visible. Now both the welcome card and the persistent banner dispatch an 'omnizen:signed-in' event that Connections.svelte listens for to auto-connect to the local server and switch to the connected view immediately.</p>
+      </description>
+    </release>
     <release version="0.0.32" date="2026-05-21">
       <description>
         <p>One-line fix to the v0.0.31 silent bootstrap. OpenWebUI 0.9.5's signup endpoint rejects `omnizen-desktop@local` as invalid email format (pydantic EmailStr won't accept `.local`). Bootstrap got HTTP 400 silently and users still saw the manual signup form. Now uses `omnizen-desktop@example.com` (RFC 2606 reserved TLD) which OpenWebUI accepts.</p>
