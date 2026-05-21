@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.24" date="2026-05-21">
+      <description>
+        <p>Drops the Flatpak build target — the electronjs BaseApp cache was racing on the GitHub Linux x64 runner and stranding the otherwise-successful .deb / .AppImage / .snap uploads. AppImage covers the same use case.</p>
+      </description>
+    </release>
     <release version="0.0.23" date="2026-05-21">
       <description>
         <p>Fixes the v0.0.22 build pipeline (an invalid electron-builder config field blocked all platforms). Adds AppStream metainfo so GNOME Software / KDE Discover render the package metadata correctly, plus macOS Info.plist + Windows installer metadata.</p>
