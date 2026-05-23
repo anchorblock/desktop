@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.34" date="2026-05-23">
+      <description>
+        <p>Fix the auto-connect blank-screen on subsequent .desktop launches. Two races closed: (1) the OpenWebUI silent-bootstrap now completes BEFORE SERVER_REACHABLE flips true, so the webview's preload never reads a null JWT and OpenWebUI never bounces to /auth; (2) main now caches the latest connection:open and replays it when the renderer signals it has mounted, so a slow first paint can't strand the user at view='welcome'.</p>
+      </description>
+    </release>
     <release version="0.0.33" date="2026-05-21">
       <description>
         <p>Fix the post-sign-in blank screen. The welcome view's OmnizenSignIn card collapses when sign-in completes, leaving an empty welcome background visible because view-state never transitioned to 'connected'. Backend was fully working - chat was loaded, models populated - just not visible. Now both the welcome card and the persistent banner dispatch an 'omnizen:signed-in' event that Connections.svelte listens for to auto-connect to the local server and switch to the connected view immediately.</p>

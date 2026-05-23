@@ -800,7 +800,7 @@ const updateTray = () => {
     sublabel: conn.url,
     click: async () => {
       const result = await connectTo(conn)
-      if (result) sendToRenderer('connection:open', result)
+      if (result) sendConnectionOpen(result)
     }
   }))
 
@@ -811,7 +811,7 @@ const updateTray = () => {
         sublabel: SERVER_URL || `http://127.0.0.1:${CONFIG.localServer?.port ?? 8080}`,
         click: async () => {
           const result = await connectTo(buildLocalConnection())
-          if (result) sendToRenderer('connection:open', result)
+          if (result) sendConnectionOpen(result)
         }
       }]
     : []
@@ -983,11 +983,12 @@ const startServerHandler = async (): Promise<boolean> => {
     updateTray()
 
     checkUrlAndOpen(SERVER_URL, async () => {
-      SERVER_REACHABLE = true
-      // Silently bootstrap the OpenWebUI admin + cache the JWT so the
-      // webview's preload can inject it into localStorage before any
-      // OpenWebUI script runs. Failure leaves openWebUIToken null and
-      // the user falls through to OpenWebUI's own auth screens.
+      // Bootstrap the OpenWebUI admin + cache the JWT BEFORE flipping
+      // SERVER_REACHABLE. connectTo polls SERVER_REACHABLE every 2 s -
+      // the moment it's true, the renderer mounts the webview and the
+      // preload reads openWebUIToken via sync IPC. If we set
+      // SERVER_REACHABLE first the preload races against the bootstrap
+      // and injects null -> OpenWebUI bounces to /auth -> blank screen.
       try {
         openWebUIToken = await getOrCreateOpenWebUIToken(SERVER_URL)
         if (!openWebUIToken) {
@@ -996,6 +997,7 @@ const startServerHandler = async (): Promise<boolean> => {
       } catch (err) {
         log.warn('[openwebui-auth] bootstrap failed', err)
       }
+      SERVER_REACHABLE = true
       sendToRenderer('server:ready', { url: SERVER_URL })
       updateTray()
     })
@@ -1164,6 +1166,17 @@ const resetAppHandler = async () => {
 
 const sendToRenderer = (type: string, data?: any) => {
   mainWindow?.webContents.send('main:data', { type, data })
+}
+
+// Latest connection:open is cached so we can replay it when the renderer
+// signals it has mounted. Electron's webContents.send is fire-and-forget;
+// if main emits before Connections.svelte registers its onData listener
+// (rare but possible on slow first paint), the event is lost forever and
+// the user sits at view='welcome' staring at a blank screen.
+let lastConnectionOpen: { url: string; connectionId: string } | null = null
+const sendConnectionOpen = (result: { url: string; connectionId: string }): void => {
+  lastConnectionOpen = result
+  sendConnectionOpen(result)
 }
 
 // ─── App Lifecycle ──────────────────────────────────────
@@ -1619,6 +1632,15 @@ if (!gotTheLock) {
       event.returnValue = openWebUIToken
     })
 
+    // Renderer signals it has mounted and registered the onData listener.
+    // Replay the most recent connection:open so a slow first paint can't
+    // strand the renderer at view='welcome' if main emitted earlier.
+    ipcMain.on('renderer:ready', () => {
+      if (lastConnectionOpen) {
+        sendToRenderer('connection:open', lastConnectionOpen)
+      }
+    })
+
     // Updater
     ipcMain.handle('updater:check', () => checkForUpdates())
     ipcMain.handle('updater:download', () => downloadUpdate())
@@ -2052,7 +2074,7 @@ if (!gotTheLock) {
     if (defaultConn) {
       createMainWindow()
       const result = await connectTo(defaultConn)
-      if (result) sendToRenderer('connection:open', result)
+      if (result) sendConnectionOpen(result)
     } else {
       createMainWindow()
     }

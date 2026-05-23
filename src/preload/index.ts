@@ -40,6 +40,10 @@ const api = {
     return () => ipcRenderer.removeListener('main:data', handler)
   },
 
+  // Tells main the onData listener is wired - main replays the last
+  // connection:open so a slow first paint can't strand us at view='welcome'.
+  notifyRendererReady: (): void => ipcRenderer.send('renderer:ready'),
+
   // App
   getAppInfo: () => ipcRenderer.invoke('app:info'),
   getVersion: () => ipcRenderer.invoke('get:version'),
