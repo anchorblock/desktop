@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.36" date="2026-05-23">
+      <description>
+        <p>Fix the blank-white-screen on Ubuntu 24.04+ for real this time. Root cause: kernel.apparmor_restrict_unprivileged_userns=1 (default on Ubuntu 24.04) blocks Electron's renderer from creating the unprivileged user namespace it needs for the Chromium sandbox. The renderer crashes silently inside the kernel before any of our code runs - which is why every "fix the renderer code" patch (v0.0.27 onwards) made no difference. The proper fix is Electron's SUID chrome-sandbox helper, which uses the privileged namespace path immune to the AppArmor restriction. electron-builder bundles chrome-sandbox but doesn't set the setuid bit by default; this release adds a deb postinst that runs chown root:root + chmod 4755 /opt/Omnizen/chrome-sandbox after unpack. Existing v0.0.35 installs can run that command by hand to get the same result without reinstalling.</p>
+      </description>
+    </release>
     <release version="0.0.35" date="2026-05-23">
       <description>
         <p>Directly wire the chat window when the local server is ready and Omnizen is the default connection. Reactive $effect bypasses every event-ordering race (connection:open lost, omnizen:signed-in not fired, auto-connect timing) and just shows the webview as soon as $serverInfo.reachable flips true. The welcome card with the Omnizen sign-in CTA only shows when the user is genuinely not signed in or the server hasn't started.</p>
