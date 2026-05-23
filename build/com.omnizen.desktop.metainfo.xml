@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.39" date="2026-05-23">
+      <description>
+        <p>Two fixes for the Linux blank-screen saga. (1) app.disableHardwareAcceleration() on Linux - the previous SwiftShader fallback only applied to GPU/utility processes, not renderers, so the webview sub-renderer kept trying GPU compositing and failing on Ubuntu 24.04 + NVIDIA 595 + Electron 39. Forcing software rendering app-wide finally paints the webview area instead of leaving it blank-grey. (2) Suppress OpenWebUI's "What's New / Release Notes" modal that opens on every fresh launch as a full-screen black/30 overlay - sets localStorage.version to a sentinel before any OpenWebUI script runs.</p>
+      </description>
+    </release>
     <release version="0.0.38" date="2026-05-23">
       <description>
         <p>Fix the "Account Activation Pending" screen that locked every fresh sign-in. OpenWebUI 0.9.5 changed signup behaviour so new users land in role=pending and see a "Contact Admin" page until promoted. Our bootstrap creates the only user via signup, so they were stuck waiting for approval from themselves. Sets DEFAULT_USER_ROLE=admin on the bundled OpenWebUI server so signup creates admin users directly (right policy for a single-user desktop app anyway). Existing pending users on v0.0.37: rm ~/.config/omnizen-desktop/data/webui.db once and relaunch.</p>
