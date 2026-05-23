@@ -96,6 +96,10 @@ linux:
       Type: Application
 deb:
   artifactName: ${name}_${arch}.${ext}
+  # Postinst: set chrome-sandbox SUID-root. Without this, Electron's
+  # renderer can't sandbox on Ubuntu 24.04+ (apparmor_restrict_unprivileged_userns=1)
+  # and the window comes up blank-white. See build/linux-after-install.tpl.
+  afterInstall: build/linux-after-install.tpl
 snap:
   artifactName: ${name}_${arch}.${ext}
 appImage:
