@@ -445,6 +445,11 @@
       sendToWebview(data)
     })
 
+    // Tell main we're ready - it replays the most recent connection:open
+    // so a slow first paint can't strand us at view='welcome' if main
+    // emitted before this listener was wired.
+    window.electronAPI.notifyRendererReady?.()
+
     // Auto-connect to the default connection on startup so the webview
     // is pre-loaded and ready for spotlight queries.
     window.electronAPI.getConfig().then((cfg: any) => {
