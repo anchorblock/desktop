@@ -84,6 +84,19 @@ import { existsSync, writeFileSync, unlinkSync } from 'fs'
 // Drop this once Electron rolls in the upstream V8 fix.
 app.commandLine.appendSwitch('js-flags', '--no-maglev')
 
+// Disable hardware acceleration ENTIRELY on Linux. The previous
+// SwiftShader-only fallback (--use-gl=angle --use-angle=swiftshader)
+// applies to the GPU and utility processes but NOT to renderer
+// processes - Chromium filters out --use-gl/--use-angle from renderer
+// args. The renderer keeps trying GPU compositing, the webview's
+// sub-renderer's compositor handshake fails on Ubuntu 24.04 + NVIDIA
+// 595 + Electron 39, and the webview area paints blank/grey on screen
+// even though the DOM is fully loaded. disableHardwareAcceleration()
+// is process-wide and forces software rendering in every renderer.
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration()
+}
+
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox')
 

@@ -21,6 +21,20 @@ try {
   // login screen - bootstrap is best-effort.
 }
 
+// Suppress OpenWebUI's "What's New / Release Notes" modal which opens
+// on every fresh launch as a full-screen bg-black/30 overlay. The
+// modal hides the chat behind a dark layer that looks like a broken
+// app. OpenWebUI shows the modal whenever localStorage.version !=
+// current server version - setting a high sentinel value here before
+// any OpenWebUI script runs disables it permanently.
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('version', '99.99.99')
+  }
+} catch {
+  // best-effort
+}
+
 // ─── Desktop ↔ Open WebUI Generic Protocol ──────────────
 // This preload is a dumb relay. It passes typed {type, data}
 // messages between the embedder (desktop renderer) and the
