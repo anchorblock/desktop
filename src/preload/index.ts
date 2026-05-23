@@ -148,6 +148,16 @@ const api = {
 
   // Bootstrap recovery (user clicked "Retry" on the bootstrap-failed overlay).
   bootstrapRetry: () => ipcRenderer.invoke('bootstrap:retry'),
+
+  // Probe the local OWUI server's /health endpoint. Renderer gates the
+  // force-show $effect on this so it doesn't mount the webview while
+  // OWUI is still running Alembic migrations (returns 503).
+  healthCheck: () => ipcRenderer.invoke('health:check'),
+
+  // Renderer detected blank-screen condition - tell main to enable the
+  // HW-accel-disabled recovery marker so the next launch fixes itself.
+  reportBlankScreen: () => ipcRenderer.invoke('blank-screen:report'),
+
   onOmnizenPending: (cb: (info: { user_code: string; verification_uri: string }) => void) => {
     const handler = (_e: unknown, info: { user_code: string; verification_uri: string }) =>
       cb(info)

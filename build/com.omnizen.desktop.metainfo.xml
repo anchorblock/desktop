@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.41" date="2026-05-23">
+      <description>
+        <p>Blank-screen full-platform coverage. (1) app.disableHardwareAcceleration() now responds to the OMNIZEN_DISABLE_HW_ACCEL=1 env var on any platform, not just Linux — Windows/macOS users hitting the same compositor failure can opt in without us pushing a build. (2) Self-recovery: if the chat webview fails to finish loading within 15 s the renderer offers a "Disable GPU (next launch)" button that writes a marker file in userData; the next launch boots with software rendering. One bad launch auto-fixes itself. (3) Health-gate the force-show effect — the renderer now polls OWUI's /health endpoint and only mounts the webview when the server returns 2xx, instead of as soon as the port is bound. Closes the slow-first-launch blank-screen case where Alembic migrations take 30-60 s on HDD/NAS storage. (4) Distinct blank-screen recovery overlay (separate from the existing did-fail-load overlay) explains the situation in plain language with Reload + Disable GPU buttons.</p>
+      </description>
+    </release>
     <release version="0.0.40" date="2026-05-23">
       <description>
         <p>Auth hardening: (1) The OWUI silent bootstrap no longer silently lets the user fall into a blank chat when it fails — instead the renderer shows an explicit "Local chat backend couldn't start" overlay with a Retry button, and SERVER_REACHABLE is gated on a non-null token so the webview never mounts unauthenticated. (2) Detect the OS keyring backend at startup; warn explicitly on Linux when safeStorage falls back to plain-text mode (no gnome-keyring / kwallet running) instead of silently treating creds-on-disk as missing. (3) Atomic writes for both creds files — a crash mid-write no longer corrupts sign-in state. (4) Device-flow poll loop now has a 5-minute hard cap with a clear error instead of spinning forever on a network blip. (5) Network failures in the poll loop no longer kill the loop — they just back off until the deadline fires. Structured [BLANK_SCREEN_REASON] log markers now identify exactly which auth path failed on any given user.</p>

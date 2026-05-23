@@ -73,6 +73,44 @@
   )
   const remoteConnections = $derived($connections ?? [])
 
+  // Whether the local OpenWebUI server has passed a /health probe.
+  // serverInfo.reachable just means "the port is bound" - on first
+  // launch with a slow disk, OWUI accepts TCP connections but spends
+  // 30-60s running Alembic migrations and returns 503 for every API
+  // call. Mounting the webview during that window paints blank. The
+  // force-show $effect waits for serverHealthy (set true here once
+  // the health IPC returns ok).
+  let serverHealthy = $state(false)
+
+  $effect(() => {
+    // Begin polling /health as soon as the server port is open.
+    if (!$serverInfo?.reachable) {
+      serverHealthy = false
+      return
+    }
+    if (serverHealthy) return
+    let cancelled = false
+    const poll = async () => {
+      while (!cancelled && !serverHealthy) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const r = await (window.electronAPI as any).healthCheck?.()
+          if (r?.ok) {
+            serverHealthy = true
+            return
+          }
+        } catch {
+          // best-effort, retry
+        }
+        await new Promise((res) => setTimeout(res, 1000))
+      }
+    }
+    poll()
+    return () => {
+      cancelled = true
+    }
+  })
+
   // Force-show the chat whenever the local server is ready and the user
   // expects it (defaultConnectionId='local' and open-webui installed).
   // Sidesteps every event-ordering race: bootstrap-vs-SERVER_REACHABLE,
@@ -86,6 +124,7 @@
       localInstalled &&
       $serverInfo?.reachable &&
       $serverInfo?.url &&
+      serverHealthy &&
       $config?.defaultConnectionId === 'local' &&
       omnizenSignedIn
     ) {

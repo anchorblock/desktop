@@ -84,17 +84,19 @@ import { existsSync, writeFileSync, unlinkSync } from 'fs'
 // Drop this once Electron rolls in the upstream V8 fix.
 app.commandLine.appendSwitch('js-flags', '--no-maglev')
 
-// Disable hardware acceleration ENTIRELY on Linux. The previous
-// SwiftShader-only fallback (--use-gl=angle --use-angle=swiftshader)
-// applies to the GPU and utility processes but NOT to renderer
-// processes - Chromium filters out --use-gl/--use-angle from renderer
-// args. The renderer keeps trying GPU compositing, the webview's
-// sub-renderer's compositor handshake fails on Ubuntu 24.04 + NVIDIA
-// 595 + Electron 39, and the webview area paints blank/grey on screen
-// even though the DOM is fully loaded. disableHardwareAcceleration()
-// is process-wide and forces software rendering in every renderer.
-if (process.platform === 'linux') {
+// Disable hardware acceleration. Linux: always (compositor handshake
+// fails on NVIDIA + Electron 39 webview sub-renderers). Windows/macOS:
+// only when the user opts in via OMNIZEN_DISABLE_HW_ACCEL=1 OR the
+// blank-screen recovery marker `.hw-accel-disabled` exists in userData
+// (set by the renderer when it detects the chat never painted).
+// Lets a single bad launch automatically fix itself on the next start.
+const hwAccelMarker = join(app.getPath('userData'), '.hw-accel-disabled')
+const hwAccelMarkerExists = existsSync(hwAccelMarker)
+const hwAccelEnvOverride = process.env.OMNIZEN_DISABLE_HW_ACCEL === '1'
+if (process.platform === 'linux' || hwAccelEnvOverride || hwAccelMarkerExists) {
   app.disableHardwareAcceleration()
+  if (hwAccelEnvOverride) log.info('HW accel disabled via OMNIZEN_DISABLE_HW_ACCEL=1')
+  if (hwAccelMarkerExists) log.info('HW accel disabled via blank-screen recovery marker')
 }
 
 if (process.platform === 'linux') {
@@ -1649,6 +1651,43 @@ if (!gotTheLock) {
         signedIn: await isSignedIn(),
         keyringAvailable: ks.available,
         keyringBackend: ks.backend,
+      }
+    })
+
+    // Renderer can poll the local OpenWebUI server to see if it's
+    // actually ready to serve requests (not just listening). On a slow
+    // disk, Alembic migrations take 30-60s after the port is bound;
+    // mounting the webview during that window leaves the user staring
+    // at a 503/loading state that looks like a blank screen.
+    // Returns { ok: true } only when the server returns 2xx on /health.
+    ipcMain.handle('health:check', async () => {
+      if (!SERVER_URL) return { ok: false, reason: 'no_server_url' }
+      try {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), 4000)
+        const res = await fetch(`${SERVER_URL}/health`, { signal: controller.signal })
+        clearTimeout(timer)
+        return { ok: res.ok, status: res.status }
+      } catch (err) {
+        return { ok: false, reason: 'fetch_failed', error: String(err) }
+      }
+    })
+
+    // Renderer detected a probable blank-screen condition (the chat
+    // webview never produced did-finish-load within the deadline).
+    // Drop a marker file so the NEXT launch boots with
+    // disableHardwareAcceleration() on - one bad launch auto-fixes the
+    // user. The renderer also offers a manual Reload.
+    ipcMain.handle('blank-screen:report', async () => {
+      try {
+        writeFileSync(join(app.getPath('userData'), '.hw-accel-disabled'), '')
+        log.warn(
+          '[BLANK_SCREEN_REASON] blank_screen_reported — disabling HW accel on next launch'
+        )
+        return { ok: true }
+      } catch (err) {
+        log.warn('blank-screen:report failed to write marker', err)
+        return { ok: false }
       }
     })
 
