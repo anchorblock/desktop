@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.35" date="2026-05-23">
+      <description>
+        <p>Directly wire the chat window when the local server is ready and Omnizen is the default connection. Reactive $effect bypasses every event-ordering race (connection:open lost, omnizen:signed-in not fired, auto-connect timing) and just shows the webview as soon as $serverInfo.reachable flips true. The welcome card with the Omnizen sign-in CTA only shows when the user is genuinely not signed in or the server hasn't started.</p>
+      </description>
+    </release>
     <release version="0.0.34" date="2026-05-23">
       <description>
         <p>Fix the auto-connect blank-screen on subsequent .desktop launches. Two races closed: (1) the OpenWebUI silent-bootstrap now completes BEFORE SERVER_REACHABLE flips true, so the webview's preload never reads a null JWT and OpenWebUI never bounces to /auth; (2) main now caches the latest connection:open and replays it when the renderer signals it has mounted, so a slow first paint can't strand the user at view='welcome'.</p>

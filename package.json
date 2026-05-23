@@ -1,6 +1,6 @@
 {
   "name": "omnizen-desktop",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "license": "AGPL-3.0",
   "description": "Omnizen Desktop — open-source chat for every frontier model, routed through your Omnizen plan",
   "main": "./out/main/index.js",

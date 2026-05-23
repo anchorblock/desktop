@@ -56,6 +56,33 @@
   )
   const remoteConnections = $derived($connections ?? [])
 
+  // Force-show the chat whenever the local server is ready and the user
+  // expects it (defaultConnectionId='local' and open-webui installed).
+  // Sidesteps every event-ordering race: bootstrap-vs-SERVER_REACHABLE,
+  // connection:open lost, omnizen:signed-in not fired, etc. As soon as
+  // the conditions are right, the webview takes over from the welcome
+  // card. The webview's preload still handles JWT injection.
+  $effect(() => {
+    if (
+      view !== 'connected' &&
+      installPhase !== 'working' &&
+      localInstalled &&
+      $serverInfo?.reachable &&
+      $serverInfo?.url &&
+      $config?.defaultConnectionId === 'local'
+    ) {
+      const url = $serverInfo.url
+      if (!openConnections.has('local')) {
+        openConnections.set('local', url)
+        openConnections = new Map(openConnections)
+      }
+      connectedUrl = url
+      activeConnectionId = 'local'
+      connectingId = ''
+      view = 'connected'
+    }
+  })
+
   // Open Terminal state
   let openTerminalStatus = $state<string | null>(null)
   let openTerminalInfo = $state<{ url?: string; apiKey?: string } | null>(null)
