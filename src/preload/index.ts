@@ -145,6 +145,9 @@ const api = {
   omnizenStatus: () => ipcRenderer.invoke('omnizen:status'),
   omnizenLogin: () => ipcRenderer.invoke('omnizen:login'),
   omnizenLogout: () => ipcRenderer.invoke('omnizen:logout'),
+
+  // Bootstrap recovery (user clicked "Retry" on the bootstrap-failed overlay).
+  bootstrapRetry: () => ipcRenderer.invoke('bootstrap:retry'),
   onOmnizenPending: (cb: (info: { user_code: string; verification_uri: string }) => void) => {
     const handler = (_e: unknown, info: { user_code: string; verification_uri: string }) =>
       cb(info)

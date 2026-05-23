@@ -45,7 +45,13 @@ export async function readCreds(): Promise<OmnizenCreds | null> {
 
 export async function writeCreds(c: OmnizenCreds): Promise<void> {
   const buf = safeStorage.encryptString(JSON.stringify(c))
-  await fs.writeFile(credsPath(), buf, { mode: 0o600 })
+  // Atomic write: .tmp sibling, then rename. A crash mid-write would
+  // otherwise leave a partial file that decrypts to garbage on next
+  // launch and looks like the user is signed out.
+  const dst = credsPath()
+  const tmp = dst + '.tmp'
+  await fs.writeFile(tmp, buf, { mode: 0o600 })
+  await fs.rename(tmp, dst)
 }
 
 export async function clearCreds(): Promise<void> {
@@ -60,12 +66,45 @@ export async function isSignedIn(): Promise<boolean> {
   return Boolean(await readCreds())
 }
 
+/**
+ * Report the OS keyring backend Electron's safeStorage is using. On Linux
+ * this distinguishes between the secure `gnome_libsecret` / `kwallet*`
+ * backends and the insecure `basic_text` fallback that Chromium picks
+ * when no keyring service is running. Used by the renderer to warn the
+ * user that credentials will be stored in plain text.
+ *
+ * Returns `'unsupported'` outside Linux (macOS Keychain / Windows DPAPI
+ * are always available and don't need a warning).
+ */
+export function keyringStatus(): {
+  available: boolean
+  backend: string
+} {
+  const available = safeStorage.isEncryptionAvailable()
+  if (process.platform !== 'linux') {
+    return { available, backend: process.platform === 'darwin' ? 'keychain' : 'dpapi' }
+  }
+  // `getSelectedStorageBackend` is Linux-only; cast around the typings.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const backend = (safeStorage as any).getSelectedStorageBackend?.() ?? 'unknown'
+  return { available, backend }
+}
+
 async function postJson(path: string, body: unknown): Promise<{ status: number; data: any }> {
-  const res = await fetch(`${APP_URL}${path}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body ?? {}),
-  })
+  // Network errors (DNS failure, dropped connection, fetch abort) used to
+  // throw out of this function and kill the poll loop. Returning status=0
+  // lets the caller treat transient network blips as "keep polling" until
+  // the deadline timer fires, which is the correct UX for a long sign-in.
+  let res: Response
+  try {
+    res = await fetch(`${APP_URL}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body ?? {}),
+    })
+  } catch {
+    return { status: 0, data: null }
+  }
   let data: any = null
   try {
     data = await res.json()
@@ -100,10 +139,24 @@ export async function deviceLogin(
   await shell.openExternal(verification_uri_complete).catch(() => undefined)
   onPending?.({ user_code, verification_uri })
 
+  // Hard cap on the polling loop. Without this, a network blip or a
+  // user who closed the browser without denying leaves the renderer
+  // spinning forever with no log output. Device codes typically expire
+  // after 10 minutes on our backend; cap the client at 5 to surface a
+  // clear error before that.
+  const POLL_DEADLINE_MS = 5 * 60 * 1000
+  const startedAt = Date.now()
   let pollMs = (start.data.interval ?? 2) * 1000
   for (;;) {
+    if (Date.now() - startedAt > POLL_DEADLINE_MS) {
+      throw new Error('Sign-in did not complete in 5 minutes. Please try again.')
+    }
     await sleep(pollMs)
     const r = await postJson('/api/cli/auth/poll', { device_code })
+    // Network failure / non-JSON / DNS — postJson returns status=0. Don't
+    // throw the loop dead on a single blip; keep polling until the
+    // deadline above fires. The caller sees a clear timeout, not silence.
+    if (r.status === 0) continue
     if (r.status === 429) {
       // slow_down per RFC 8628 - back off and keep polling.
       pollMs = Math.max(pollMs, SLOW_DOWN_MS)
