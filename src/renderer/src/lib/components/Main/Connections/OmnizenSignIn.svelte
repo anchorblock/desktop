@@ -44,6 +44,10 @@
     status = 'signed-out'
     userCode = ''
     verificationUri = ''
+    // Tell Connections.svelte to leave the chat view and drop the
+    // local connection - the bundled OpenWebUI server has been
+    // restarted unauthenticated and the JWT we injected is dead.
+    window.dispatchEvent(new CustomEvent('omnizen:signed-out'))
   }
 
   onMount(() => {

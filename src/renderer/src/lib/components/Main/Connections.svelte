@@ -42,6 +42,13 @@
   let localInstalled = $state(false)
   let openTerminalInstalled = $state(false)
   let showAddConnectionModal = $state(false)
+  // Track Omnizen sign-in. Updated from `omnizen:status` IPC on mount,
+  // from the `omnizen:signed-in` event after a successful login, and
+  // from the `omnizen:signed-out` event after sign-out. The force-show
+  // $effect below uses this to refuse re-entering the chat view after
+  // sign-out (otherwise the server restart re-flips reachable and
+  // bounces the user back into the now-unauthenticated chat).
+  let omnizenSignedIn = $state(false)
 
   // Active log panel
   let activeLog = $state<'server' | 'open-terminal' | null>(null)
@@ -69,7 +76,8 @@
       localInstalled &&
       $serverInfo?.reachable &&
       $serverInfo?.url &&
-      $config?.defaultConnectionId === 'local'
+      $config?.defaultConnectionId === 'local' &&
+      omnizenSignedIn
     ) {
       const url = $serverInfo.url
       if (!openConnections.has('local')) {
@@ -381,13 +389,35 @@
   // chat webview becomes visible immediately. The card + banner both
   // dispatch 'omnizen:signed-in' on success.
   const handleOmnizenSignedIn = () => {
+    omnizenSignedIn = true
     if (view !== 'connected' && localInstalled) {
       connect('local')
     }
   }
 
+  // After sign-out: drop the chat back to the welcome card so the user
+  // can sign back in. Closes any open webview connection (the server is
+  // about to restart unauthenticated and the JWT we injected is dead).
+  const handleOmnizenSignedOut = () => {
+    omnizenSignedIn = false
+    if (openConnections.has('local')) {
+      openConnections.delete('local')
+      openConnections = new Map(openConnections)
+    }
+    if (activeConnectionId === 'local') activeConnectionId = ''
+    connectedUrl = ''
+    connectingId = ''
+    if (installPhase !== 'working') view = 'welcome'
+  }
+
   onMount(() => {
     window.addEventListener('omnizen:signed-in', handleOmnizenSignedIn)
+    window.addEventListener('omnizen:signed-out', handleOmnizenSignedOut)
+    // Initial sign-in status - the force-show $effect refuses to fire
+    // until this resolves to true.
+    window.electronAPI.omnizenStatus?.().then((r: { signedIn?: boolean }) => {
+      omnizenSignedIn = !!r?.signedIn
+    }).catch(() => { omnizenSignedIn = false })
 
     window.electronAPI.onData((data: any) => {
       // ── Connection opened (startup, tray click) ───────
@@ -505,6 +535,7 @@
 
     return () => {
       window.removeEventListener('omnizen:signed-in', handleOmnizenSignedIn)
+      window.removeEventListener('omnizen:signed-out', handleOmnizenSignedOut)
     }
   })
 
