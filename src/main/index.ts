@@ -61,7 +61,7 @@ import {
 
 import { initUpdater, checkForUpdates, downloadUpdate, installUpdate } from './updater'
 
-import { deviceLogin, readCreds, clearCreds, isSignedIn } from './utils/omnizen'
+import { deviceLogin, readCreds, clearCreds, isSignedIn, keyringStatus } from './utils/omnizen'
 import { getOrCreateOpenWebUIToken, clearOpenWebUIBootstrap } from './utils/openwebui-auth'
 
 // Latest OpenWebUI session JWT for the silent admin we bootstrap on
@@ -1002,16 +1002,39 @@ const startServerHandler = async (): Promise<boolean> => {
       // preload reads openWebUIToken via sync IPC. If we set
       // SERVER_REACHABLE first the preload races against the bootstrap
       // and injects null -> OpenWebUI bounces to /auth -> blank screen.
+      let bootstrapErr: unknown = null
       try {
         openWebUIToken = await getOrCreateOpenWebUIToken(SERVER_URL)
         if (!openWebUIToken) {
-          log.warn('[openwebui-auth] bootstrap returned no token')
+          log.warn('[BLANK_SCREEN_REASON] bootstrap_null')
         }
       } catch (err) {
-        log.warn('[openwebui-auth] bootstrap failed', err)
+        bootstrapErr = err
+        log.warn('[BLANK_SCREEN_REASON] bootstrap_error', err)
       }
-      SERVER_REACHABLE = true
-      sendToRenderer('server:ready', { url: SERVER_URL })
+      // Only flip SERVER_REACHABLE if the bootstrap actually produced a
+      // token. Without a token, mounting the webview would just show
+      // OpenWebUI's /auth redirect (blank/login form). Instead, leave
+      // the renderer at the welcome view and surface an explicit
+      // recovery overlay via bootstrap:failed.
+      if (openWebUIToken) {
+        SERVER_REACHABLE = true
+        sendToRenderer('server:ready', { url: SERVER_URL })
+      } else {
+        const ks = keyringStatus()
+        sendToRenderer('bootstrap:failed', {
+          reason: !ks.available
+            ? 'encryption_unavailable'
+            : bootstrapErr
+              ? 'bootstrap_error'
+              : 'bootstrap_null',
+          keyringBackend: ks.backend,
+          message:
+            bootstrapErr instanceof Error
+              ? bootstrapErr.message
+              : 'Local chat backend could not start. Click to retry.',
+        })
+      }
       updateTray()
     })
 
@@ -1219,6 +1242,20 @@ if (!gotTheLock) {
     CONFIG = await getConfig()
     loadSpotlightPosition()
     log.info('Config:', CONFIG)
+    // Surface the OS keyring backend up-front. On Linux without an
+    // unlocked secret service (gnome-keyring / kwallet / etc.) Electron
+    // falls back to `basic_text` mode where credentials are stored in
+    // PLAIN TEXT on disk - we want this in every bug report so we don't
+    // silently leak. (macOS Keychain / Windows DPAPI are always fine.)
+    const ks = keyringStatus()
+    log.info('Keyring backend:', ks)
+    if (process.platform === 'linux' && (!ks.available || ks.backend === 'basic_text')) {
+      log.warn(
+        '[BLANK_SCREEN_REASON] keyring_unavailable backend=' +
+          ks.backend +
+          ' — credentials may be stored in plain text'
+      )
+    }
 
     app.name = 'Open WebUI'
     if (process.platform === 'darwin' && app.dock) {
@@ -1606,7 +1643,33 @@ if (!gotTheLock) {
     // Omnizen - device-flow sign-in + creds. Restart the local server
     // after a successful login so the bundled Open WebUI picks up the
     // injected OPENAI_* env on the next boot.
-    ipcMain.handle('omnizen:status', async () => ({ signedIn: await isSignedIn() }))
+    ipcMain.handle('omnizen:status', async () => {
+      const ks = keyringStatus()
+      return {
+        signedIn: await isSignedIn(),
+        keyringAvailable: ks.available,
+        keyringBackend: ks.backend,
+      }
+    })
+
+    // Renderer can ask main to retry the bootstrap if it failed (e.g.
+    // user unlocked their keyring after launch). Used by the bootstrap
+    // failure recovery overlay.
+    ipcMain.handle('bootstrap:retry', async () => {
+      if (!SERVER_URL) return { ok: false, reason: 'no_server_url' }
+      try {
+        openWebUIToken = await getOrCreateOpenWebUIToken(SERVER_URL)
+        if (openWebUIToken) {
+          SERVER_REACHABLE = true
+          sendToRenderer('server:ready', { url: SERVER_URL })
+          return { ok: true }
+        }
+        return { ok: false, reason: 'bootstrap_null' }
+      } catch (err) {
+        log.warn('[BLANK_SCREEN_REASON] bootstrap_retry_error', err)
+        return { ok: false, reason: 'bootstrap_error' }
+      }
+    })
     ipcMain.handle('omnizen:login', async (event) => {
       const creds = await deviceLogin((info) => {
         event.sender.send('omnizen:pending', info)

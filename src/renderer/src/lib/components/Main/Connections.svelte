@@ -49,6 +49,16 @@
   // sign-out (otherwise the server restart re-flips reachable and
   // bounces the user back into the now-unauthenticated chat).
   let omnizenSignedIn = $state(false)
+  // Bootstrap failure state surfaced by main process. When non-null, an
+  // overlay is rendered offering a retry button instead of letting the
+  // user stare at a blank webview (which is what they'd see if we
+  // mounted the chat with no JWT and OWUI redirected to /auth).
+  let bootstrapFailure = $state<{
+    reason: string
+    keyringBackend: string
+    message: string
+  } | null>(null)
+  let bootstrapRetrying = $state(false)
 
   // Active log panel
   let activeLog = $state<'server' | 'open-terminal' | null>(null)
@@ -420,6 +430,19 @@
     }).catch(() => { omnizenSignedIn = false })
 
     window.electronAPI.onData((data: any) => {
+      // ── Bootstrap failed (no OWUI JWT) ────────────────
+      // Main dispatches this when the silent OpenWebUI admin signup +
+      // signin both failed and the renderer should NOT mount the chat
+      // webview (it would show a /auth redirect / blank screen).
+      if (data.type === 'bootstrap:failed') {
+        bootstrapFailure = data.data
+        return
+      }
+      // Server became ready (after a successful bootstrap retry or the
+      // initial happy path): clear any prior failure overlay.
+      if (data.type === 'server:ready') {
+        bootstrapFailure = null
+      }
       // ── Connection opened (startup, tray click) ───────
       if (data.type === 'connection:open' && data.data?.url) {
         const connId = data.data.connectionId ?? ''
@@ -561,11 +584,79 @@
     }
   }
 
+  const retryBootstrap = async () => {
+    if (bootstrapRetrying) return
+    bootstrapRetrying = true
+    try {
+      const r = await window.electronAPI.bootstrapRetry?.()
+      if (r?.ok) {
+        bootstrapFailure = null
+      } else if (r?.reason) {
+        bootstrapFailure = bootstrapFailure
+          ? { ...bootstrapFailure, reason: r.reason }
+          : { reason: r.reason, keyringBackend: '', message: 'Retry failed.' }
+      }
+    } finally {
+      bootstrapRetrying = false
+    }
+  }
+
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="h-full w-full flex flex-col bg-[#f5f5f7] dark:bg-[#0a0a0a] text-[#1d1d1f] dark:text-[#fafafa]" in:fade={{ duration: 200 }}>
+  {#if bootstrapFailure}
+    <!-- Bootstrap recovery overlay. Shown instead of a blank webview
+         when the OWUI silent admin bootstrap couldn't produce a JWT.
+         The user gets an explicit explanation + retry button instead of
+         a mysterious empty screen. -->
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-6"
+      in:fade={{ duration: 150 }}
+    >
+      <div class="max-w-md rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-6 shadow-xl">
+        <div class="text-base font-medium mb-2">
+          Local chat backend couldn't start
+        </div>
+        <div class="text-[13px] opacity-70 mb-4 leading-relaxed">
+          {#if bootstrapFailure.reason === 'encryption_unavailable'}
+            Your system keyring isn't available, so the desktop app couldn't
+            cache the local chat credentials securely. Unlock your keyring
+            (gnome-keyring / kwallet / etc.) and retry, or contact support if
+            the problem persists.
+          {:else}
+            {bootstrapFailure.message ?? 'Retry the local sign-in, or check the logs in Settings.'}
+          {/if}
+        </div>
+        {#if bootstrapFailure.keyringBackend}
+          <div class="text-[11px] opacity-50 mb-4 font-mono">
+            Keyring backend: {bootstrapFailure.keyringBackend}
+          </div>
+        {/if}
+        <div class="flex gap-2">
+          <button
+            class="inline-flex items-center gap-2 bg-black dark:bg-white px-4 py-1.5 rounded-lg text-white dark:text-black text-[12px] transition hover:opacity-90 border-none disabled:opacity-50"
+            onclick={retryBootstrap}
+            disabled={bootstrapRetrying}
+          >
+            {#if bootstrapRetrying}
+              <div class="w-3 h-3 rounded-full border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black animate-spin"></div>
+              Retrying…
+            {:else}
+              Retry
+            {/if}
+          </button>
+          <button
+            class="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] opacity-60 hover:opacity-100 transition bg-transparent border-none"
+            onclick={() => { bootstrapFailure = null }}
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
   <div class="flex-1 min-h-0 flex">
     {#if sidebarOpen}
       <Sidebar

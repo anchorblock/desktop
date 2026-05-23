@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.40" date="2026-05-23">
+      <description>
+        <p>Auth hardening: (1) The OWUI silent bootstrap no longer silently lets the user fall into a blank chat when it fails — instead the renderer shows an explicit "Local chat backend couldn't start" overlay with a Retry button, and SERVER_REACHABLE is gated on a non-null token so the webview never mounts unauthenticated. (2) Detect the OS keyring backend at startup; warn explicitly on Linux when safeStorage falls back to plain-text mode (no gnome-keyring / kwallet running) instead of silently treating creds-on-disk as missing. (3) Atomic writes for both creds files — a crash mid-write no longer corrupts sign-in state. (4) Device-flow poll loop now has a 5-minute hard cap with a clear error instead of spinning forever on a network blip. (5) Network failures in the poll loop no longer kill the loop — they just back off until the deadline fires. Structured [BLANK_SCREEN_REASON] log markers now identify exactly which auth path failed on any given user.</p>
+      </description>
+    </release>
     <release version="0.0.39" date="2026-05-23">
       <description>
         <p>Two fixes for the Linux blank-screen saga. (1) app.disableHardwareAcceleration() on Linux - the previous SwiftShader fallback only applied to GPU/utility processes, not renderers, so the webview sub-renderer kept trying GPU compositing and failing on Ubuntu 24.04 + NVIDIA 595 + Electron 39. Forcing software rendering app-wide finally paints the webview area instead of leaving it blank-grey. (2) Suppress OpenWebUI's "What's New / Release Notes" modal that opens on every fresh launch as a full-screen black/30 overlay - sets localStorage.version to a sentinel before any OpenWebUI script runs.</p>

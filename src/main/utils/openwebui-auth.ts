@@ -49,7 +49,13 @@ async function readBootstrap(): Promise<Bootstrap | null> {
 
 async function writeBootstrap(b: Bootstrap): Promise<void> {
   const buf = safeStorage.encryptString(JSON.stringify(b))
-  await fs.writeFile(bsPath(), buf, { mode: 0o600 })
+  // Atomic write: write to a .tmp sibling, then rename. A power loss or
+  // crash mid-write leaves the previous valid file intact instead of a
+  // half-written one that decrypts to garbage on next launch.
+  const dst = bsPath()
+  const tmp = dst + '.tmp'
+  await fs.writeFile(tmp, buf, { mode: 0o600 })
+  await fs.rename(tmp, dst)
 }
 
 async function postJson(
