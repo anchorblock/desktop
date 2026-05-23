@@ -77,6 +77,15 @@
   // Track webview load errors per connection
   let webviewErrors: Map<string, { code: number; description: string; url: string }> = $state(new Map())
 
+  // Per-connection blank-screen detection: when a webview's
+  // did-start-loading fires but did-finish-load doesn't within 15 s,
+  // the webview is probably stuck on a compositor failure (Linux
+  // NVIDIA, Windows discrete-GPU edge cases, etc.). We surface a
+  // recovery overlay above the webview that offers Reload + "Open in
+  // browser" + Report (which sets a marker so the NEXT launch boots
+  // with HW accel disabled).
+  let webviewLoadDeadlineMissed: Map<string, boolean> = $state(new Map())
+
   // Content preload path for webview bridge
   let contentPreloadPath: string = $state('')
 
@@ -177,16 +186,46 @@
         const connId = wv.getAttribute('partition')?.replace('persist:connection-', '') ?? ''
         if (!connId) return
 
-        // Mark loading when navigation starts
+        // Mark loading when navigation starts + arm the 15s
+        // blank-screen detector. If did-finish-load doesn't fire by
+        // the deadline, the renderer's compositor probably failed
+        // (Linux NVIDIA, Windows discrete-GPU, etc.).
+        let blankTimer: ReturnType<typeof setTimeout> | null = null
         wv.addEventListener('did-start-loading', () => {
           webviewLoading.set(connId, true)
           webviewLoading = new Map(webviewLoading)
+          if (webviewLoadDeadlineMissed.has(connId)) {
+            webviewLoadDeadlineMissed.delete(connId)
+            webviewLoadDeadlineMissed = new Map(webviewLoadDeadlineMissed)
+          }
+          if (blankTimer) clearTimeout(blankTimer)
+          blankTimer = setTimeout(() => {
+            webviewLoadDeadlineMissed.set(connId, true)
+            webviewLoadDeadlineMissed = new Map(webviewLoadDeadlineMissed)
+          }, 15_000)
         })
 
         // Clear loading when done
         wv.addEventListener('did-stop-loading', () => {
           webviewLoading.set(connId, false)
           webviewLoading = new Map(webviewLoading)
+          if (blankTimer) {
+            clearTimeout(blankTimer)
+            blankTimer = null
+          }
+        })
+
+        // Successful finish - also clear the deadline marker so a
+        // previous slow load doesn't leave the overlay up.
+        wv.addEventListener('did-finish-load', () => {
+          if (blankTimer) {
+            clearTimeout(blankTimer)
+            blankTimer = null
+          }
+          if (webviewLoadDeadlineMissed.has(connId)) {
+            webviewLoadDeadlineMissed.delete(connId)
+            webviewLoadDeadlineMissed = new Map(webviewLoadDeadlineMissed)
+          }
         })
 
         // Track load failures so we can show an error overlay
@@ -330,6 +369,50 @@
       allowpopups
     ></webview>
   {/each}
+
+  <!-- Blank-screen detector overlay. Fires when the webview has been
+       in loading state for >15s without producing did-finish-load,
+       which is the signature of a webview-sub-renderer compositor
+       failure (Linux NVIDIA pre-v0.0.39, Windows discrete-GPU edge
+       cases, etc.). Distinct from the existing error overlay - this
+       fires when the load NEVER COMPLETED, not when it explicitly
+       failed. -->
+  {#if !activeWebviewError && webviewLoadDeadlineMissed.get(activeConnectionId) && view === 'connected'}
+    <div class="absolute inset-0 z-20 flex items-center justify-center bg-[#eee] dark:bg-[#111]" transition:fade={{ duration: 200 }}>
+      <div class="text-center max-w-sm px-6">
+        <div class="mx-auto mb-4 w-10 h-10 rounded-full bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+          <svg class="w-5 h-5 opacity-30 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.85-3.36M20 15a9 9 0 01-14.85 3.36" />
+          </svg>
+        </div>
+        <div class="text-[14px] font-medium mb-1 opacity-80">Chat is taking longer than expected</div>
+        <div class="text-[12px] opacity-50 mb-5 leading-relaxed">
+          This sometimes happens on the first launch (database migration), or when
+          the graphics driver isn't compositing the chat window correctly. Try
+          Reload first; if that doesn't help, click Disable GPU and we'll launch
+          in software-rendering mode next time.
+        </div>
+        <div class="flex gap-2 justify-center flex-wrap">
+          <button
+            class="px-4 py-2 rounded-xl text-[13px] font-medium bg-black dark:bg-white text-white dark:text-black border-none cursor-pointer transition hover:bg-gray-800 dark:hover:bg-gray-100 active:scale-[0.98]"
+            onclick={retryActiveWebview}
+          >
+            Reload
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-[13px] bg-black/[0.04] dark:bg-white/[0.06] text-[#1d1d1f] dark:text-[#fafafa] border-none cursor-pointer opacity-70 hover:opacity-100 transition active:scale-[0.98]"
+            onclick={async () => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              await (window.electronAPI as any).reportBlankScreen?.()
+              alert('Software rendering will be enabled on next launch. Quit and reopen the app.')
+            }}
+          >
+            Disable GPU (next launch)
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- Error overlay when webview fails to load -->
   {#if activeWebviewError}
