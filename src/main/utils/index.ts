@@ -576,6 +576,15 @@ export const startServer = async (
     // inside the Omnizen Desktop shell.
     WEBUI_NAME: 'Omnizen',
     WEBUI_URL: 'https://omnizen.ai',
+    // OpenWebUI 0.9.5 changed signup behaviour: new users are created
+    // with role='pending' by default and land on an "Account Activation
+    // Pending - Contact Admin" page until an admin promotes them. The
+    // bootstrap creates the first (and only) user via the signup
+    // endpoint, then that same user is stuck waiting for approval from
+    // themselves. DEFAULT_USER_ROLE=admin makes signup create admins
+    // directly, which is the right policy for a single-user desktop
+    // app anyway.
+    DEFAULT_USER_ROLE: 'admin',
     // OpenWebUI 0.9.5 still requires a local user account even when
     // WEBUI_AUTH=False (the auto-login that's supposed to create one
     // doesn't fire reliably inside our webview storage partition).

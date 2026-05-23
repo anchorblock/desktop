@@ -83,6 +83,11 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.0.38" date="2026-05-23">
+      <description>
+        <p>Fix the "Account Activation Pending" screen that locked every fresh sign-in. OpenWebUI 0.9.5 changed signup behaviour so new users land in role=pending and see a "Contact Admin" page until promoted. Our bootstrap creates the only user via signup, so they were stuck waiting for approval from themselves. Sets DEFAULT_USER_ROLE=admin on the bundled OpenWebUI server so signup creates admin users directly (right policy for a single-user desktop app anyway). Existing pending users on v0.0.37: rm ~/.config/omnizen-desktop/data/webui.db once and relaunch.</p>
+      </description>
+    </release>
     <release version="0.0.37" date="2026-05-23">
       <description>
         <p>Make Sign out work again. The v0.0.35 force-show $effect didn't gate on the Omnizen sign-in state, so after clicking Sign out (which clears creds + restarts the local server) the moment the server became reachable again the effect re-fired and dragged the user back into the now-unauthenticated chat view. v0.0.37 tracks omnizenSignedIn in the renderer, gates the force-show on it, and listens for a new omnizen:signed-out event dispatched by OmnizenSignIn.svelte's sign-out handler. After sign-out the local connection is dropped and the welcome card with the Omnizen sign-in CTA returns.</p>
